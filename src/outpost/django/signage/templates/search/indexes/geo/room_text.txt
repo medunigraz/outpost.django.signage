@@ -1,0 +1,9 @@
+{{ object.name }}
+{% if object.campusonline %}
+{{ object.campusonline.title }}
+{{ object.campusonline.building }}
+{{ object.campusonline.floor }}
+{{ object.campusonline.name_short }}
+{{ object.campusonline.name_full }}
+{{ object.campusonline.organization }}
+{% endif %}
