@@ -11,4 +11,5 @@ urlpatterns = [
         name="page-livechannel",
     ),
     path("schema/<str:name>/", views.SchemaView.as_view(), name="schema"),
+    path("ical/schedule/<int:pk>/", views.ScheduleFeed(), name="ical-schedule"),
 ]

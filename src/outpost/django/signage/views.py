@@ -40,6 +40,48 @@ class SchemaView(View):
         )
 
 
+@dataclass
+class Event:
+    start: timezone.datetime
+    stop: timezone.datetime
+    name: str
+
+
+class ScheduleFeed(ICalFeed):
+    product_id = "-//api.medunigraz.at//Signage/Schedule//EN"
+    timezone = settings.TIME_ZONE
+    file_name = "schedule.ics"
+
+    def get_object(self, request, pk):
+        return models.Schedule.objects.get(pk=pk)
+
+    def items(self, obj):
+        for s in obj.scheduleitem_set.filter(range__contains=timezone.now()):
+            for r in s.recurrences.between(
+                s.range.lower, s.range.upper, inc=True, dtstart=timezone.now()
+            ):
+                yield Event(
+                    timezone.datetime.combine(r.date(), s.start, tzinfo=r.tzinfo),
+                    timezone.datetime.combine(r.date(), s.stop, tzinfo=r.tzinfo),
+                    s.playlist.name,
+                )
+
+    def item_title(self, item):
+        return item.name
+
+    def item_description(self, item):
+        return item.name
+
+    def item_start_datetime(self, item):
+        return item.start
+
+    def item_end_datetime(self, item):
+        return item.stop
+
+    def item_link(self, item):
+        return ""
+
+
 class LiveChannelPageView(JSONResponseMixin, DetailView):
     model = models.LiveChannelPage
 

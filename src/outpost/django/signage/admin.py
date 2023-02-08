@@ -187,6 +187,15 @@ class ScheduleItemInline(OrderedTabularInline):
 @admin.register(models.Schedule)
 class ScheduleAdmin(OrderedInlineModelAdminMixin, admin.ModelAdmin):
     inlines = (ScheduleItemInline,)
+    list_display = ("name", "default", "ical")
+
+    def ical(self, obj):
+        return format_html(
+            _("""<a href="{}">Download</a>"""),
+            reverse("signage:ical-schedule", kwargs={"pk": obj.pk}),
+        )
+
+    ical.short_description = _("Calendar")
 
 
 class PowerItemInline(OrderedTabularInline):
