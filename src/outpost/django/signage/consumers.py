@@ -49,6 +49,13 @@ class FrontendConsumer(JsonWebsocketConsumer):
         self.display.connected = None
         self.display.save()
 
+    def playlist_update(self, message):
+        try:
+            playlist = models.Playlist.objects.get(pk=message.get("playlist"))
+        except models.Playlist.DoesNotExist:
+            return
+        self.send_json(playlist.get_message().dict())
+
     @classmethod
     def encode_json(cls, content):
         return json.dumps(content, cls=DjangoJSONEncoder)
