@@ -110,7 +110,7 @@ class WebsitePageAdmin(PageChildAdmin):
 class PDFPageAdmin(PageChildAdmin):
     base_model = models.PDFPage
     show_in_index = False
-    readonly_fields = ("runtime",)
+    exclude = ("runtime",)
 
 
 @admin.register(models.CampusOnlineEventPage)
