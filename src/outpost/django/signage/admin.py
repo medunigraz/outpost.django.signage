@@ -49,18 +49,21 @@ class PageChildAdmin(PolymorphicChildModelAdmin):
 @admin.register(models.Page)
 class PageParentAdmin(PolymorphicParentModelAdmin):
     base_model = models.Page
-    child_models = (
-        models.HTMLPage,
-        models.RichTextPage,
-        models.ImagePage,
-        models.MoviePage,
-        models.WebsitePage,
-        models.PDFPage,
-        models.LiveEventPage,
-        models.TYPO3NewsPage,
-        models.TYPO3EventPage,
-        models.CampusOnlineEventPage,
-        models.RestaurantPage,
+    child_models = sorted(
+        (
+            models.HTMLPage,
+            models.RichTextPage,
+            models.ImagePage,
+            models.MoviePage,
+            models.WebsitePage,
+            models.PDFPage,
+            models.LiveChannelPage,
+            models.TYPO3NewsPage,
+            models.TYPO3EventPage,
+            models.CampusOnlineEventPage,
+            models.RestaurantPage,
+        ),
+        key=lambda c: c._meta.verbose_name,
     )
     list_filter = (PolymorphicChildModelFilter,)
 
