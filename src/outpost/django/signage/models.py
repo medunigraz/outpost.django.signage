@@ -172,13 +172,25 @@ class RichTextPage(Page):
 
     def get_message(self):
         return schemas.RichTextPageSchema(
-            page=self.page, name=self.name, runtime=self.get_runtime(), content=self.content
+            page=self.page,
+            name=self.name,
+            runtime=self.get_runtime(),
+            content=self.content,
         )
 
 
 @signal_connect
 class ImagePage(Page):
-    image = models.ImageField(upload_to=Uuid4Upload)
+    image = models.ImageField(
+        upload_to=Uuid4Upload,
+        validators=(
+            ImageValidator(
+                formats=("jpeg", "png", "webp"),
+                width=range(1920, 4096),
+                height=range(1080, 2160),
+            ),
+        ),
+    )
 
     class Meta:
         verbose_name = _("Image page")
@@ -208,7 +220,7 @@ class MoviePage(Page):
 
 
 class WebsitePage(Page):
-    url = models.URLField()
+    url = models.URLField(validators=(URLValidator(schemes=("https",)),))
 
     class Meta:
         verbose_name = _("Website page")
