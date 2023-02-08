@@ -130,11 +130,25 @@ class TYPO3NewsPageAdmin(PageChildAdmin):
     base_model = models.TYPO3NewsPage
     show_in_index = False
 
+    def get_form(self, request, obj=None, **kwargs):
+        form = super().get_form(request, obj, **kwargs)
+        form.base_fields["news"].queryset = form.base_fields["news"].queryset.filter(
+            datetime__gte=timezone.now() - settings.SIGNAGE_TYPO3_NEWS_RETROSPECTIVE
+        )
+        return form
+
 
 @admin.register(models.TYPO3EventPage)
 class TYPO3EventPageAdmin(PageChildAdmin):
     base_model = models.TYPO3EventPage
     show_in_index = False
+
+    def get_form(self, request, obj=None, **kwargs):
+        form = super().get_form(request, obj, **kwargs)
+        form.base_fields["event"].queryset = form.base_fields["event"].queryset.filter(
+            start__gte=timezone.now() - settings.SIGNAGE_TYPO3_NEWS_RETROSPECTIVE
+        )
+        return form
 
 
 @admin.register(models.RestaurantPage)
