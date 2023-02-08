@@ -56,7 +56,7 @@ class ScheduleFeed(ICalFeed):
         return models.Schedule.objects.get(pk=pk)
 
     def items(self, obj):
-        for s in obj.scheduleitem_set.filter(range__contains=timezone.now()):
+        for s in obj.scheduleitem_set.filter(range__endswith__gt=timezone.now()):
             for r in s.recurrences.between(
                 s.range.lower, s.range.upper, inc=True, dtstart=timezone.now()
             ):
