@@ -107,8 +107,18 @@ class Display(NetworkedDeviceMixin, models.Model):
 
 
 class Page(TimeStampedModel, PolymorphicModel):
-    name = models.CharField(max_length=128, blank=False, null=False)
-    runtime = models.DurationField(default=timedelta(seconds=20))
+    name = models.CharField(
+        max_length=128,
+        blank=False,
+        null=False,
+        help_text=_("A canonical name for this page."),
+    )
+    runtime = models.DurationField(
+        default=timedelta(seconds=20),
+        help_text=_(
+            "The time this page should be visible before it is replaced with the next page."
+        ),
+    )
 
     def get_runtime(self):
         return self.runtime
@@ -143,6 +153,10 @@ class WeatherPage(Page):
 class HTMLPage(Page):
     content = models.TextField()
 
+    class Meta:
+        verbose_name = _("HTML page")
+        verbose_name_plural = _("HTML pages")
+
     def get_message(self):
         return schemas.HTMLPageSchema(
             page=self.page, name=self.name, runtime=self.get_runtime(), content=self.content
@@ -151,6 +165,10 @@ class HTMLPage(Page):
 
 class RichTextPage(Page):
     content = RichTextUploadingField()
+
+    class Meta:
+        verbose_name = _("Rich text page")
+        verbose_name_plural = _("Rich text pages")
 
     def get_message(self):
         return schemas.RichTextPageSchema(
@@ -162,6 +180,10 @@ class RichTextPage(Page):
 class ImagePage(Page):
     image = models.ImageField(upload_to=Uuid4Upload)
 
+    class Meta:
+        verbose_name = _("Image page")
+        verbose_name_plural = _("Image pages")
+
     def get_message(self):
         return schemas.ImagePageSchema(
             page=self.page, name=self.name, runtime=self.get_runtime(), url=self.image.url
@@ -171,6 +193,10 @@ class ImagePage(Page):
 @signal_connect
 class MoviePage(Page):
     movie = models.FileField(upload_to=Uuid4Upload)
+
+    class Meta:
+        verbose_name = _("Movie page")
+        verbose_name_plural = _("Movie pages")
 
     def pre_save(self, *args, **kwargs):
         return
@@ -183,6 +209,10 @@ class MoviePage(Page):
 
 class WebsitePage(Page):
     url = models.URLField()
+
+    class Meta:
+        verbose_name = _("Website page")
+        verbose_name_plural = _("Website pages")
 
     def get_message(self):
         return schemas.WebsitePageSchema(
@@ -203,6 +233,10 @@ class PDFPage(Page):
     )
     pages = models.PositiveSmallIntegerField(editable=False)
     page_runtime = models.DurationField(blank=True, null=True)
+
+    class Meta:
+        verbose_name = _("PDF page")
+        verbose_name_plural = _("PDF pages")
 
     def __str__(self):
         return f"{self.name} ({self.pdf.name})"
@@ -231,8 +265,15 @@ class PDFPage(Page):
 
 class CampusOnlineEventPage(Page):
     building = models.ForeignKey(
-        "campusonline.Building", on_delete=models.DO_NOTHING, db_constraint=False
+        "campusonline.Building",
+        on_delete=models.DO_NOTHING,
+        db_constraint=False,
+        help_text=_("The building for which all events should be displayed."),
     )
+
+    class Meta:
+        verbose_name = _("CAMPUSonline event page")
+        verbose_name_plural = _("CAMPUSonline event pages")
 
 
 class LiveChannelPage(Page):
@@ -261,6 +302,10 @@ class TYPO3NewsPage(Page):
     news = models.ForeignKey(
         "typo3.News", on_delete=models.DO_NOTHING, db_constraint=False
     )
+
+    class Meta:
+        verbose_name = _("TYPO3 news page")
+        verbose_name_plural = _("TYPO3 news pages")
 
     def get_message(self):
         return schemas.TYPO3NewsPageSchema(
@@ -292,6 +337,10 @@ class TYPO3EventPage(Page):
         "typo3.Event", on_delete=models.DO_NOTHING, db_constraint=False
     )
 
+    class Meta:
+        verbose_name = _("TYPO3 event page")
+        verbose_name_plural = _("TYPO3 event pages")
+
     def get_message(self):
         return schemas.TYPO3NewsPageSchema(
             page=self.page,
@@ -311,16 +360,20 @@ class TYPO3EventPage(Page):
                     alternative=m.alternative,
                     preview=m.preview,
                 )
-                for m in self.news.media_set.all()
+                for m in self.event.media.all()
             ],
-            location=self.location,
-            organizer=self.organizer,
-            contact=self.contact,
+            location=self.event.location,
+            organizer=self.event.organizer,
+            contact=self.event.contact,
         )
 
 
 class RestaurantPage(Page):
     restaurants = models.ManyToManyField("restaurant.Restaurant")
+
+    class Meta:
+        verbose_name = _("Restaurant page")
+        verbose_name_plural = _("Restaurant pages")
 
     def get_message(self):
         today = timezone.now().today()
