@@ -210,7 +210,11 @@ class TYPO3EventPageSchema(BaseModel):
     teaser: str
     body: str
     media: list[TYPO3Media]
-    datetime: datetime
+    start: datetime
+    end: datetime
+    allday: bool
+    registration: bool
+    registration_end: Optional[datetime]
     location: str
     organizer: str
     contact: str

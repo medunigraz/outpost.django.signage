@@ -344,7 +344,7 @@ class TYPO3NewsPage(Page):
             title=self.news.title,
             teaser=self.news.teaser,
             body=self.news.body,
-            datetime=self.datetime,
+            datetime=self.news.datetime,
             media=[
                 schemas.TYPO3Media(
                     url=m.media.url,
@@ -355,9 +355,9 @@ class TYPO3NewsPage(Page):
                     alternative=m.alternative,
                     preview=m.preview,
                 )
-                for m in self.news.media_set.all()
+                for m in self.news.media.all()
             ],
-            author=self.author,
+            author=self.news.author,
         )
 
 
@@ -371,14 +371,18 @@ class TYPO3EventPage(Page):
         verbose_name_plural = _("TYPO3 event pages")
 
     def get_message(self):
-        return schemas.TYPO3NewsPageSchema(
+        return schemas.TYPO3EventPageSchema(
             page=self.page,
             name=self.name,
             runtime=self.get_runtime(),
-            title=self.news.title,
-            teaser=self.news.teaser,
-            body=self.news.body,
-            datetime=self.datetime,
+            title=self.event.title,
+            teaser=self.event.teaser,
+            body=self.event.body,
+            start=self.event.start,
+            end=self.event.end,
+            allday=self.event.allday,
+            registration=self.event.register,
+            registration_end=self.event.registration_end,
             media=[
                 schemas.TYPO3Media(
                     url=m.media.url,
