@@ -287,6 +287,23 @@ class CampusOnlineEventPage(Page):
         verbose_name = _("CAMPUSonline event page")
         verbose_name_plural = _("CAMPUSonline event pages")
 
+    def get_message(self):
+        return schemas.CampusOnlineEventPageSchema(
+            page=self.page,
+            name=self.name,
+            runtime=self.get_runtime(),
+            items=[
+                schemas.CampusOnlineEventItem(
+                    room=str(i.room),
+                    start=i.start,
+                    end=i.end,
+                    title=i.title,
+                    category=i.category,
+                )
+                for i in CampusOnlineEvent.objects.filter(building=self.building)
+            ],
+        )
+
 
 class LiveChannelPage(Page):
     livechannel = models.ForeignKey(
