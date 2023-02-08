@@ -490,6 +490,12 @@ class ScheduleItem(models.Model):
     def __str__(self):
         return f"{self.playlist} ({self.range.lower} - {self.range.upper})"
 
+    def clean(self):
+        if self.start > self.stop:
+            raise ValidationError(
+                _("Start time must be less then end"),
+            )
+
 
 @signal_connect
 class Power(models.Model):
