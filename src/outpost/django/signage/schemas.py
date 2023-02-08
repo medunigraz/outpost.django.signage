@@ -22,6 +22,18 @@ class Point(BaseModel):
     y: float = Field(..., description=_("EPSG:3857 latitude coordinate"))
 
 
+class WeatherPageSchema(BaseModel):
+    page: Literal["HTML"] = Field(..., description=_("Type of page to display"))
+    name: str = Field(..., description=_("Name of the page, only used for debugging"))
+    runtime: timedelta = Field(
+        ...,
+        description=_(
+            "Time in seconds that this page should be visible before transitioning to the next page"
+        ),
+    )
+    content: str = Field(..., description=_("Raw HTML code to be shown for this page"))
+
+
 class HTMLPageSchema(BaseModel):
     page: Literal['HTMLPage'] = Field(..., description=_("Type of page to display"))
     name: str = Field(..., description=_("Name of the page, only used for debugging"))
@@ -230,7 +242,25 @@ class RestaurantPageSchema(BaseModel):
     )
     restaurants: list[Restaurant]
 
-Page = Annotated[Union[ HTMLPageSchema, RichTextPageSchema, ImagePageSchema, MoviePageSchema, WebsitePageSchema, PDFPageSchema, CampusOnlineEventPageSchema, LiveEventPageSchema, TYPO3NewsPageSchema, TYPO3EventPageSchema, RestaurantPageSchema, ], Field(discriminator='page')]
+
+Page = Annotated[
+    Union[
+        WeatherPageSchema,
+        HTMLPageSchema,
+        RichTextPageSchema,
+        ImagePageSchema,
+        MoviePageSchema,
+        WebsitePageSchema,
+        PDFPageSchema,
+        CampusOnlineEventPageSchema,
+        LiveChannelPageSchema,
+        TYPO3NewsPageSchema,
+        TYPO3EventPageSchema,
+        RestaurantPageSchema,
+    ],
+    Field(discriminator="page"),
+]
+
 
 class PlaylistMessage(BaseModel):
     pages: list[Page]

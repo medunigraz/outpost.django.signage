@@ -51,6 +51,7 @@ class PageParentAdmin(PolymorphicParentModelAdmin):
     base_model = models.Page
     child_models = sorted(
         (
+            models.WeatherPage,
             models.HTMLPage,
             models.RichTextPage,
             models.ImagePage,
@@ -66,6 +67,12 @@ class PageParentAdmin(PolymorphicParentModelAdmin):
         key=lambda c: c._meta.verbose_name,
     )
     list_filter = (PolymorphicChildModelFilter,)
+
+
+@admin.register(models.WeatherPage)
+class WeatherPageAdmin(PageChildAdmin):
+    base_model = models.WeatherPage
+    show_in_index = False
 
 
 @admin.register(models.HTMLPage)

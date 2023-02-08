@@ -124,6 +124,22 @@ class Page(TimeStampedModel, PolymorphicModel):
         return self.__class__.__name__
 
 
+class WeatherPage(Page):
+    location = models.ForeignKey(WeatherLocation, on_delete=models.CASCADE)
+
+    class Meta:
+        verbose_name = _("Weather page")
+        verbose_name_plural = _("Weather pages")
+
+    def get_message(self):
+        return schemas.WeatherPageSchema(
+            page=self.page,
+            name=self.name,
+            runtime=self.get_runtime(),
+            forecast=self.location.forecast,
+        )
+
+
 class HTMLPage(Page):
     content = models.TextField()
 
