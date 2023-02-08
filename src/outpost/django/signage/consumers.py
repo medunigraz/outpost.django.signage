@@ -36,7 +36,9 @@ class FrontendConsumer(JsonWebsocketConsumer):
             async_to_sync(self.channel_layer.group_add)(
                 self.display.schedule.channel, self.channel_name
             )
-        self.send_json(self.display.schedule.get_current().get_message().dict())
+        self.send_json(
+            self.display.schedule.get_current(timezone.now()).get_message().dict()
+        )
 
     def receive_json(self, content):
         return

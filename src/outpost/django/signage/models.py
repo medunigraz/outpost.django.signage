@@ -159,7 +159,10 @@ class HTMLPage(Page):
 
     def get_message(self):
         return schemas.HTMLPageSchema(
-            page=self.page, name=self.name, runtime=self.get_runtime(), content=self.content
+            page=self.page,
+            name=self.name,
+            runtime=self.get_runtime(),
+            content=self.content,
         )
 
 
@@ -198,7 +201,10 @@ class ImagePage(Page):
 
     def get_message(self):
         return schemas.ImagePageSchema(
-            page=self.page, name=self.name, runtime=self.get_runtime(), url=self.image.url
+            page=self.page,
+            name=self.name,
+            runtime=self.get_runtime(),
+            url=self.image.url,
         )
 
 
@@ -215,7 +221,10 @@ class MoviePage(Page):
 
     def get_message(self):
         return schemas.MoviePageSchema(
-            page=self.page, name=self.name, runtime=self.get_runtime(), url=self.movie.url
+            page=self.page,
+            name=self.name,
+            runtime=self.get_runtime(),
+            url=self.movie.url,
         )
 
 
@@ -431,7 +440,7 @@ class RestaurantPage(Page):
                     ],
                 )
                 for r in self.restaurants.filter(enabled=True)
-            ]
+            ],
         )
 
 
@@ -442,7 +451,11 @@ class Playlist(models.Model):
         return self.name
 
     def get_message(self):
-        return schemas.PlaylistMessage(pages=[p.page.get_message() for p in self.playlistitem_set.filter(enabled=True)])
+        return schemas.PlaylistMessage(
+            pages=[
+                p.page.get_message() for p in self.playlistitem_set.filter(enabled=True)
+            ]
+        )
 
 
 class PlaylistItem(OrderedModel):
