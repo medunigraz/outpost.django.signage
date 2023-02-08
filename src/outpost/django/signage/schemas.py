@@ -35,7 +35,7 @@ class WeatherPageSchema(BaseModel):
 
 
 class HTMLPageSchema(BaseModel):
-    page: Literal['HTMLPage'] = Field(..., description=_("Type of page to display"))
+    page: Literal["HTML"] = Field(..., description=_("Type of page to display"))
     name: str = Field(..., description=_("Name of the page, only used for debugging"))
     runtime: timedelta = Field(
         ...,
@@ -47,7 +47,7 @@ class HTMLPageSchema(BaseModel):
 
 
 class RichTextPageSchema(BaseModel):
-    page: Literal['RichTextPage'] = Field(..., description=_("Type of page to display"))
+    page: Literal["RichText"] = Field(..., description=_("Type of page to display"))
     name: str = Field(..., description=_("Name of the page, only used for debugging"))
     runtime: timedelta = Field(
         ...,
@@ -59,7 +59,7 @@ class RichTextPageSchema(BaseModel):
 
 
 class ImagePageSchema(BaseModel):
-    page: Literal['ImagePage'] = Field(..., description=_("Type of page to display"))
+    page: Literal["Image"] = Field(..., description=_("Type of page to display"))
     name: str = Field(..., description=_("Name of the page, only used for debugging"))
     runtime: timedelta = Field(
         ...,
@@ -74,7 +74,7 @@ class ImagePageSchema(BaseModel):
 
 
 class MoviePageSchema(BaseModel):
-    page: Literal['MoviePage'] = Field(..., description=_("Type of page to display"))
+    page: Literal["Movie"] = Field(..., description=_("Type of page to display"))
     name: str = Field(..., description=_("Name of the page, only used for debugging"))
     runtime: timedelta = Field(
         ...,
@@ -89,7 +89,7 @@ class MoviePageSchema(BaseModel):
 
 
 class WebsitePageSchema(BaseModel):
-    page: Literal['WebsitePage'] = Field(..., description=_("Type of page to display"))
+    page: Literal["Website"] = Field(..., description=_("Type of page to display"))
     name: str = Field(..., description=_("Name of the page, only used for debugging"))
     runtime: timedelta = Field(
         ...,
@@ -106,7 +106,7 @@ class WebsitePageSchema(BaseModel):
 
 
 class PDFPageSchema(BaseModel):
-    page: Literal['PDFPage'] = Field(..., description=_("Type of page to display"))
+    page: Literal["PDF"] = Field(..., description=_("Type of page to display"))
     name: str = Field(..., description=_("Name of the page, only used for debugging"))
     runtime: timedelta = Field(
         ...,
@@ -140,7 +140,9 @@ class CampusOnlineEventItem(BaseModel):
 
 
 class CampusOnlineEventPageSchema(BaseModel):
-    page: Literal['CampusOnlineEventPage'] = Field(..., description=_("Type of page to display"))
+    page: Literal["CampusOnlineEvent"] = Field(
+        ..., description=_("Type of page to display")
+    )
     name: str = Field(..., description=_("Name of the page, only used for debugging"))
     runtime: timedelta = Field(
         ...,
@@ -155,7 +157,7 @@ class CampusOnlineEventPageSchema(BaseModel):
 
 
 class LiveChannelPageSchema(BaseModel):
-    page: Literal["LiveChannelPage"] = Field(..., description=_("Type of page to display"))
+    page: Literal["LiveChannel"] = Field(..., description=_("Type of page to display"))
     name: str = Field(..., description=_("Name of the page, only used for debugging"))
     runtime: timedelta = Field(
         ...,
@@ -179,7 +181,7 @@ class TYPO3Media(BaseModel):
 
 
 class TYPO3NewsPageSchema(BaseModel):
-    page: Literal['TYPO3NewsPage'] = Field(..., description=_("Type of page to display"))
+    page: Literal["TYPO3News"] = Field(..., description=_("Type of page to display"))
     name: str = Field(..., description=_("Name of the page, only used for debugging"))
     runtime: timedelta = Field(
         ...,
@@ -196,7 +198,7 @@ class TYPO3NewsPageSchema(BaseModel):
 
 
 class TYPO3EventPageSchema(BaseModel):
-    page: Literal['TYPO3EventPage'] = Field(..., description=_("Type of page to display"))
+    page: Literal["TYPO3Event"] = Field(..., description=_("Type of page to display"))
     name: str = Field(..., description=_("Name of the page, only used for debugging"))
     runtime: timedelta = Field(
         ...,
@@ -226,13 +228,13 @@ class Restaurant(BaseModel):
     zipcode: str
     city: str
     phone: str
-    url: str
+    url: Optional[str]
     position: Point
     meals: list[Meal]
 
 
 class RestaurantPageSchema(BaseModel):
-    page: Literal['RestaurantPage'] = Field(..., description=_("Type of page to display"))
+    page: Literal["Restaurant"] = Field(..., description=_("Type of page to display"))
     name: str = Field(..., description=_("Name of the page, only used for debugging"))
     runtime: timedelta = Field(
         ...,
