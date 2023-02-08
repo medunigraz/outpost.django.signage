@@ -455,6 +455,12 @@ class PlaylistItem(OrderedModel):
         return f"{self.page}@{self.playlist}[{self.order}]"
 
 
+@dataclass
+class ScheduleItemCandidate:
+    start: datetime
+    end: datetime
+
+
 class Schedule(models.Model):
     name = models.CharField(max_length=128, blank=False, null=False)
     default = models.ForeignKey("Playlist", on_delete=models.CASCADE)
@@ -466,19 +472,51 @@ class Schedule(models.Model):
     def channel(self):
         return f"{__name__}.{self.__class__.__name__}.{self.pk}"
 
-    def get_current(self):
-        now = timezone.now()
+    def get_current(self, now):
         scheduleitems = self.scheduleitem_set.filter(
-            start__lte=now,
-            stop__gte=now,
+            start__lte=now, stop__gte=now, range__contains=now
         ).order_by("-start", "stop")
-        today = now.replace(hour=0, minute=0, second=0, microsecond=0)
+        today = datetime.combine(now.date(), time(), tzinfo=now.tzinfo)
         for s in scheduleitems:
             if bool(s.recurrences.between(today, today, dtstart=today, inc=True)):
                 return s.playlist
         return self.default
 
+    def get_next_datetime(self, after):
+        scheduleitems = self.scheduleitem_set.filter(
+            stop__gt=after, range__endswith__gt=after
+        ).order_by("-start")
+        today = timezone.datetime.combine(after.date(), time(), tzinfo=after.tzinfo)
+        candidates = [
+            ScheduleItemCandidate(
+                datetime.combine(r.date(), s.start, tzinfo=s.range.lower.tzinfo),
+                datetime.combine(r.date(), s.stop, tzinfo=s.range.upper.tzinfo),
+            )
+            for s, r in (
+                (
+                    s,
+                    s.recurrences.after(
+                        today, inc=True, dtstart=after, dtend=s.range.upper
+                    ),
+                )
+                for s in scheduleitems
+                if s.recurrences.after(
+                    today, inc=True, dtstart=after, dtend=s.range.upper
+                )
+            )
+        ]
+        if not candidates:
+            logger.debug("There are no future scheduled items, ")
+            return None
+        candidate = min(candidates, key=lambda c: c.start)
 
+        if candidate.start < after and candidate.end >= after:
+            return candidate.end
+        else:
+            return candidate.start
+
+
+@signal_connect
 class ScheduleItem(models.Model):
     schedule = models.ForeignKey("Schedule", on_delete=models.CASCADE)
     range = DateTimeRangeField()
