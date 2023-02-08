@@ -488,7 +488,7 @@ class ScheduleItem(models.Model):
     playlist = models.ForeignKey("Playlist", on_delete=models.CASCADE)
 
     def __str__(self):
-        return f"{self.playlist} ({self.range.lower} - {self.range.upper})"
+        return f"{self.playlist} ({self.start} - {self.stop})"
 
     def clean(self):
         if self.start > self.stop:
