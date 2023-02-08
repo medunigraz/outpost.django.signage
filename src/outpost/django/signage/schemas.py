@@ -154,8 +154,8 @@ class CampusOnlineEventPageSchema(BaseModel):
     )
 
 
-class LiveEventPageSchema(BaseModel):
-    page: Literal['LiveEventPage'] = Field(..., description=_("Type of page to display"))
+class LiveChannelPageSchema(BaseModel):
+    page: Literal["LiveChannelPage"] = Field(..., description=_("Type of page to display"))
     name: str = Field(..., description=_("Name of the page, only used for debugging"))
     runtime: timedelta = Field(
         ...,

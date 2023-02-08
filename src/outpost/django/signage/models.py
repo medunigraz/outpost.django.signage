@@ -235,8 +235,26 @@ class CampusOnlineEventPage(Page):
     )
 
 
-class LiveEventPage(Page):
-    livetemplate = models.ForeignKey("video.LiveTemplate", on_delete=models.CASCADE)
+class LiveChannelPage(Page):
+    livechannel = models.ForeignKey(
+        "video.LiveChannel",
+        on_delete=models.CASCADE,
+        help_text=_(
+            "The streaming channel that should be displayed. Provided that a public stream is started in this location while this page is active."
+        ),
+    )
+
+    class Meta:
+        verbose_name = _("Live channel page")
+        verbose_name_plural = _("Live channel pages")
+
+    def get_message(self):
+        return schemas.LiveChannelPageSchema(
+            page=self.page,
+            name=self.name,
+            runtime=self.get_runtime(),
+            url=reverse("signage:page-livechannel", kwargs={"pk": self.pk}),
+        )
 
 
 class TYPO3NewsPage(Page):

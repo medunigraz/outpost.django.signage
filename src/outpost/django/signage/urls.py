@@ -4,4 +4,11 @@ from . import views
 
 app_name = "signage"
 
-urlpatterns = [path("schema/<str:name>/", views.SchemaView.as_view(), name="schema")]
+urlpatterns = [
+    path(
+        "page/livechannel/<int:pk>/",
+        views.LiveChannelPageView.as_view(),
+        name="page-livechannel",
+    ),
+    path("schema/<str:name>/", views.SchemaView.as_view(), name="schema"),
+]

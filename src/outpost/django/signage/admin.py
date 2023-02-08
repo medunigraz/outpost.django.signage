@@ -119,9 +119,9 @@ class CampusOnlineEventPageAdmin(PageChildAdmin):
     show_in_index = False
 
 
-@admin.register(models.LiveEventPage)
-class LiveEventPageAdmin(PageChildAdmin):
-    base_model = models.LiveEventPage
+@admin.register(models.LiveChannelPage)
+class LiveChannelPageAdmin(PageChildAdmin):
+    base_model = models.LiveChannelPage
     show_in_index = False
 
 

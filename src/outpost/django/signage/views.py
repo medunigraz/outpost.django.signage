@@ -38,3 +38,21 @@ class SchemaView(View):
         return HttpResponse(
             cls.schema_json(indent=2), content_type="application/schema+json"
         )
+
+
+class LiveChannelPageView(JSONResponseMixin, DetailView):
+    model = models.LiveChannelPage
+
+    def get(self, request, *args, **kwargs):
+        lep = self.get_object()
+        event = get_object_or_404(
+            LiveEvent, channel=lep.channel, end__isnull=True, public=True
+        )
+        viewer = models.LiveViewer.objects.create(event=event)
+        logger.info(f"Created new viewer {viewer}")
+        data = {
+            "viewer": viewer.pk,
+            "streams": {s.type: s.viewer(viewer) for s in event.livestream_set.all()},
+        }
+
+        return self.render_json_response(data)
