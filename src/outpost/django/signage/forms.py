@@ -27,3 +27,48 @@ class ScheduleItemAdminForm(forms.ModelForm):
     class Meta:
         model = models.ScheduleItem
         fields = "__all__"
+
+
+class ScheduleItemAdminInlineFormSet(forms.BaseInlineFormSet):
+    def clean(self):
+        super().clean()
+
+        def overlap(x1, x2, y1, y2):
+            return max(x1, y1) <= min(x2, y2)
+
+        def recurrences(r, start, stop):
+            return set(
+                [
+                    t.date()
+                    for t in r.between(
+                        start,
+                        stop,
+                        inc=True,
+                        dtstart=datetime.combine(
+                            start.date(), time(), tzinfo=start.tzinfo
+                        ),
+                    )
+                ]
+            )
+
+        for a, b in combinations(filter(lambda f: f.has_changed(), self.forms), 2):
+            if not overlap(
+                a.instance.range.lower,
+                a.instance.range.upper,
+                b.instance.range.lower,
+                b.instance.range.upper,
+            ):
+                continue
+            if not overlap(
+                a.instance.start, a.instance.stop, b.instance.start, b.instance.stop
+            ):
+                continue
+            start = max(a.instance.range.lower, b.instance.range.lower)
+            stop = min(a.instance.range.upper, b.instance.range.upper)
+            if recurrences(a.instance.recurrences, start, stop) & recurrences(
+                b.instance.recurrences, start, stop
+            ):
+                a.add_error(
+                    None,
+                    _("{scheduleitem} would overlap").format(scheduleitem=b.instance),
+                )

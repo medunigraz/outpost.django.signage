@@ -181,11 +181,7 @@ class ScheduleItemInline(OrderedTabularInline):
     model = models.ScheduleItem
     extra = 1
     form = forms.ScheduleItemAdminForm
-
-
-#    formfield_overrides = {
-#        models.DateTimeRangeField: {'widget': RangeWidget(AdminSplitDateTime())},
-#    }
+    formset = forms.ScheduleItemAdminInlineFormSet
 
 
 @admin.register(models.Schedule)
