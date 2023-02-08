@@ -1,33 +1,51 @@
-import reversion
-import asyncssh
+import logging
 from base64 import b64encode
+from dataclasses import dataclass
+from datetime import (
+    datetime,
+    time,
+    timedelta,
+)
 from hashlib import sha256
-from datetime import timedelta
-from popplerqt5 import Poppler
+
+import asyncssh
+import reversion
+from channels.layers import get_channel_layer
+from ckeditor_uploader.fields import RichTextUploadingField
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.gis.db import models
-from django.contrib.postgres.fields import DateTimeRangeField
 from django.contrib.gis.geos import (
     LineString,
     Point,
 )
-from django.utils import timezone
+from django.contrib.postgres.fields import DateTimeRangeField
+from django.core.exceptions import ValidationError
+from django.core.validators import URLValidator
 from django.db.models import Q
+from django.urls import reverse
+from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 from django_extensions.db.models import TimeStampedModel
 from ordered_model.models import OrderedModel
-from channels.layers import get_channel_layer
-from polymorphic.models import PolymorphicModel
-from recurrence.fields import RecurrenceField
-from ckeditor_uploader.fields import RichTextUploadingField
-from shortuuid.django_fields import ShortUUIDField
-
 from outpost.django.base.decorators import signal_connect
 from outpost.django.base.models import NetworkedDeviceMixin
 from outpost.django.base.utils import Uuid4Upload
+from outpost.django.base.validators import ImageValidator
+from outpost.django.campusonline.models import Event as CampusOnlineEvent
+from outpost.django.weather.models import Location as WeatherLocation
+from polymorphic.models import PolymorphicModel
+from popplerqt5 import Poppler
+from recurrence.fields import RecurrenceField
+from shortuuid.django_fields import ShortUUIDField
 
-from .validators import PDFValidator, PDFOrientation
 from . import schemas
+from .validators import (
+    PDFOrientation,
+    PDFValidator,
+)
+
+logger = logging.getLogger(__name__)
 
 
 class Resolution(models.Model):

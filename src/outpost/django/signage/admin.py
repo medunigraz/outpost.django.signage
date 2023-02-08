@@ -1,18 +1,34 @@
+from datetime import timedelta
+
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
 from django.contrib import admin
 from django.contrib.admin.widgets import AdminSplitDateTime
-from django.contrib.postgres.forms.ranges import DateTimeRangeField, RangeWidget
-from ordered_model.admin import OrderedModelAdmin
-from ordered_model.admin import OrderedTabularInline, OrderedInlineModelAdminMixin
+from django.contrib.postgres.forms.ranges import (
+    DateTimeRangeField,
+    RangeWidget,
+)
+from django.urls import reverse
+from django.utils import timezone
+from django.utils.html import format_html
+from django.utils.translation import gettext_lazy as _
+from ordered_model.admin import (
+    OrderedInlineModelAdminMixin,
+    OrderedModelAdmin,
+    OrderedTabularInline,
+)
 from polymorphic.admin import (
     PolymorphicChildModelAdmin,
     PolymorphicChildModelFilter,
     PolymorphicParentModelAdmin,
 )
 from reversion.admin import VersionAdmin
-from channels.layers import get_channel_layer
-from asgiref.sync import async_to_sync
 
-from . import models, forms
+from . import (
+    forms,
+    models,
+)
+from .conf import settings
 
 
 @admin.register(models.Resolution)

@@ -1,11 +1,10 @@
 from enum import Enum
 
-from popplerqt5 import Poppler
-
 from django.core.exceptions import ValidationError
+from django.core.files.base import File
 from django.utils.deconstruct import deconstructible
 from django.utils.translation import ugettext_lazy as _
-from django.core.files.base import File
+from popplerqt5 import Poppler
 
 
 class PDFOrientation(Enum):

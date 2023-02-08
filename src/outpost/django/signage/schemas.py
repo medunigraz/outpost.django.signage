@@ -1,7 +1,20 @@
-from datetime import datetime, timedelta
-from typing import Union, Optional, Literal, Annotated
-from pydantic import BaseModel, HttpUrl, Field
+from datetime import (
+    datetime,
+    timedelta,
+)
+from typing import (
+    Annotated,
+    Literal,
+    Optional,
+    Union,
+)
+
 from django.utils.translation import gettext as _
+from pydantic import (
+    BaseModel,
+    Field,
+    HttpUrl,
+)
 
 
 class Point(BaseModel):
