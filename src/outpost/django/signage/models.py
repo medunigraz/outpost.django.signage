@@ -1,4 +1,6 @@
+import json
 import logging
+import subprocess
 from base64 import b64encode
 from dataclasses import dataclass
 from datetime import (
@@ -41,6 +43,9 @@ from shortuuid.django_fields import ShortUUIDField
 
 from . import schemas
 from .validators import (
+    MediaAudioValidator,
+    MediaContainerValidator,
+    MediaVideoValidator,
     PDFOrientation,
     PDFValidator,
 )
@@ -209,22 +214,52 @@ class ImagePage(Page):
 
 
 @signal_connect
-class MoviePage(Page):
-    movie = models.FileField(upload_to=Uuid4Upload)
+class VideoPage(Page):
+    video = models.FileField(
+        upload_to=Uuid4Upload,
+        validators=(
+            MediaContainerValidator(
+                formats=("mp4",),
+                video_streams=1,
+                audio_streams=0,
+                inlines=(
+                    MediaVideoValidator(
+                        codecs=("h264",),
+                        width=range(720, 1921),
+                        height=range(480, 1081),
+                    ),
+                ),
+            ),
+        ),
+        help_text=_("Video to be used as a fullscreen page."),
+    )
 
     class Meta:
-        verbose_name = _("Movie page")
-        verbose_name_plural = _("Movie pages")
+        verbose_name = _("Video page")
+        verbose_name_plural = _("Video pages")
 
     def pre_save(self, *args, **kwargs):
-        return
+        proc = subprocess.run(
+            [
+                "ffprobe",
+                "-print_format",
+                "json",
+                "-show_format",
+                self.video.file.file.name,
+            ],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            timeout=30,
+        )
+        info = json.loads(proc.stdout.decode("utf-8"))
+        self.runtime = timedelta(seconds=float(info.get("format").get("duration")))
 
     def get_message(self):
-        return schemas.MoviePageSchema(
+        return schemas.VideoPageSchema(
             page=self.page,
             name=self.name,
             runtime=self.get_runtime(),
-            url=self.movie.url,
+            url=self.video.url,
         )
 
 

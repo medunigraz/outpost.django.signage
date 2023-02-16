@@ -73,8 +73,8 @@ class ImagePageSchema(BaseModel):
     )
 
 
-class MoviePageSchema(BaseModel):
-    page: Literal["Movie"] = Field(..., description=_("Type of page to display"))
+class VideoPageSchema(BaseModel):
+    page: Literal["Video"] = Field(..., description=_("Type of page to display"))
     name: str = Field(..., description=_("Name of the page, only used for debugging"))
     runtime: timedelta = Field(
         ...,
@@ -255,7 +255,7 @@ Page = Annotated[
         HTMLPageSchema,
         RichTextPageSchema,
         ImagePageSchema,
-        MoviePageSchema,
+        VideoPageSchema,
         WebsitePageSchema,
         PDFPageSchema,
         CampusOnlineEventPageSchema,

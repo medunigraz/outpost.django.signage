@@ -55,7 +55,7 @@ class PageParentAdmin(PolymorphicParentModelAdmin):
             models.HTMLPage,
             models.RichTextPage,
             models.ImagePage,
-            models.MoviePage,
+            models.VideoPage,
             models.WebsitePage,
             models.PDFPage,
             models.LiveChannelPage,
@@ -94,10 +94,11 @@ class ImagePageAdmin(PageChildAdmin):
     show_in_index = False
 
 
-@admin.register(models.MoviePage)
-class MoviePageAdmin(PageChildAdmin):
-    base_model = models.MoviePage
+@admin.register(models.VideoPage)
+class VideoPageAdmin(PageChildAdmin):
+    base_model = models.VideoPage
     show_in_index = False
+    exclude = ("runtime",)
 
 
 @admin.register(models.WebsitePage)
