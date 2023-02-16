@@ -156,7 +156,9 @@ class WeatherPage(Page):
 
 
 class HTMLPage(Page):
-    content = models.TextField()
+    content = models.TextField(
+        help_text=_("Raw HTML can be used to construct more in-depth pages."),
+    )
 
     class Meta:
         verbose_name = _("HTML page")
@@ -198,6 +200,7 @@ class ImagePage(Page):
                 height=range(1080, 2160),
             ),
         ),
+        help_text=_("Image to be used as a fullscreen page."),
     )
 
     class Meta:
@@ -264,7 +267,10 @@ class VideoPage(Page):
 
 
 class WebsitePage(Page):
-    url = models.URLField(validators=(URLValidator(schemes=("https",)),))
+    url = models.URLField(
+        validators=(URLValidator(schemes=("https",)),),
+        help_text=_("URL of website to be used inside an IFRAME as a fullscreen page."),
+    )
 
     class Meta:
         verbose_name = _("Website page")
@@ -286,6 +292,7 @@ class PDFPage(Page):
                 pages=range(1, 20),
             ),
         ),
+        help_text=_("PDF file to be used as a fullscreen page."),
     )
     pages = models.PositiveSmallIntegerField(editable=False)
     page_runtime = models.DurationField(blank=True, null=True)
@@ -495,8 +502,17 @@ class Playlist(models.Model):
 
 class PlaylistItem(OrderedModel):
     playlist = models.ForeignKey(Playlist, on_delete=models.CASCADE)
-    page = models.ForeignKey(Page, on_delete=models.CASCADE)
-    enabled = models.BooleanField(default=True)
+    page = models.ForeignKey(
+        Page,
+        on_delete=models.CASCADE,
+        help_text=_("The page that should be used at this position of the playlist."),
+    )
+    enabled = models.BooleanField(
+        default=True,
+        help_text=_(
+            "Control visibility of item in playlist. Only enabled items are displayed."
+        ),
+    )
     order_with_respect_to = "playlist"
 
     def __str__(self):
@@ -511,7 +527,13 @@ class ScheduleItemCandidate:
 
 class Schedule(models.Model):
     name = models.CharField(max_length=128, blank=False, null=False)
-    default = models.ForeignKey("Playlist", on_delete=models.CASCADE)
+    default = models.ForeignKey(
+        "Playlist",
+        on_delete=models.CASCADE,
+        help_text=_(
+            "Select a playlist that should be used if no other playlist is scheduled at the moment."
+        ),
+    )
 
     def __str__(self):
         return self.name
@@ -567,11 +589,34 @@ class Schedule(models.Model):
 @signal_connect
 class ScheduleItem(models.Model):
     schedule = models.ForeignKey("Schedule", on_delete=models.CASCADE)
-    range = DateTimeRangeField()
-    start = models.TimeField()
-    stop = models.TimeField()
-    recurrences = RecurrenceField(include_dtstart=False)
-    playlist = models.ForeignKey("Playlist", on_delete=models.CASCADE)
+    range = DateTimeRangeField(
+        help_text=_(
+            "The absolute time range where this schedule can be considered active. Past items will automatically be cleaned up."
+        ),
+    )
+    start = models.TimeField(
+        help_text=_(
+            "The time of the day when this schedule will start. Must be less than stop time."
+        ),
+    )
+    stop = models.TimeField(
+        help_text=_(
+            "The time of the day when this schedule will stop. Must be greater than start time."
+        ),
+    )
+    recurrences = RecurrenceField(
+        include_dtstart=False,
+        help_text=_(
+            "The dates on which this schedule will be active. Eligible dates will have the schedule start and stop at the selected time."
+        ),
+    )
+    playlist = models.ForeignKey(
+        "Playlist",
+        on_delete=models.CASCADE,
+        help_text=_(
+            "The playlist that should be displayed when this schedule becomes active."
+        ),
+    )
 
     def __str__(self):
         return f"{self.playlist} ({self.start} - {self.stop})"
