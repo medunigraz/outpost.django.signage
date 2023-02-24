@@ -108,7 +108,6 @@ class Display(NetworkedDeviceMixin, models.Model):
         pk = asyncssh.generate_private_key("ssh-rsa", comment=self.name)
         # For compatibility with older SSH implementations
         self.key = pk.export_private_key("pkcs1-pem")
-        self.save()
 
 
 class Page(TimeStampedModel, PolymorphicModel):
