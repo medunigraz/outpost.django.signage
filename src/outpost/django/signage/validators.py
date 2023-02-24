@@ -158,7 +158,7 @@ class MediaContainerValidator(MediaAbstractValidator):
                 raise ValidationError(
                     _(
                         "Container has {audio_streams} audio streams. Use only {allowed}."
-                    ).format(audio_streams=audio_streams, allowed=self._video_streams)
+                    ).format(audio_streams=audio_streams, allowed=self._audio_streams)
                 )
         if self._bitrate is not None:
             bitrate = int(info.get("format").get("bitrate"))
