@@ -38,7 +38,7 @@ class ResolutionAdmin(admin.ModelAdmin):
 
 @admin.register(models.Display)
 class DisplayAdmin(admin.ModelAdmin):
-    list_display = ("name", "schedule", "room", "resolution", "enabled", "online")
+    list_display = ("name", "hostname", "schedule", "room", "resolution", "enabled", "online")
     list_filter = ("schedule", "resolution", "enabled", "online")
 
 
