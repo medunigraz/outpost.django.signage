@@ -142,10 +142,8 @@ class Page(TimeStampedModel, PolymorphicModel):
 
     @property
     def page(self):
-        real = self.get_real_instance()
-        if real:
-            return real.__class__.__name__.removesuffix("Page")
-        return "-"
+        real = self.get_real_instance_class()
+        return real.__name__.removesuffix("Page")
 
 
 class WeatherPage(Page):
