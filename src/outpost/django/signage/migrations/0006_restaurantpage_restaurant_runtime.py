@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('signage', '0005_auto_20230301_1739'),
+        ("signage", "0005_auto_20230301_1739"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='restaurantpage',
-            name='restaurant_runtime',
+            model_name="restaurantpage",
+            name="restaurant_runtime",
             field=models.DurationField(blank=True, null=True),
         ),
     ]
