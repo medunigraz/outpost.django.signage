@@ -12,10 +12,26 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
+from guardian.admin import (
+    GuardedModelAdmin,
+    GuardedModelAdminMixin,
+)
+from guardian.models import (
+    GroupObjectPermission,
+    UserObjectPermission,
+)
+from guardian.shortcuts import (
+    assign_perm,
+    get_objects_for_user,
+)
 from ordered_model.admin import (
     OrderedInlineModelAdminMixin,
     OrderedModelAdmin,
     OrderedTabularInline,
+)
+from outpost.django.base.guardian import (
+    GuardedModelAdminFilterMixin,
+    GuardedModelAdminObjectMixin,
 )
 from polymorphic.admin import (
     PolymorphicChildModelAdmin,
@@ -37,17 +53,43 @@ class ResolutionAdmin(admin.ModelAdmin):
 
 
 @admin.register(models.Display)
-class DisplayAdmin(admin.ModelAdmin):
-    list_display = ("name", "hostname", "schedule", "room", "resolution", "enabled", "online")
+class DisplayAdmin(
+    GuardedModelAdminFilterMixin, GuardedModelAdminObjectMixin, GuardedModelAdmin
+):
+    list_display = (
+        "name",
+        "hostname",
+        "schedule",
+        "room",
+        "resolution",
+        "enabled",
+        "online",
+    )
     list_filter = ("schedule", "resolution", "enabled", "online")
 
+    def get_form(self, request, obj=None, **kwargs):
+        form = super().get_form(request, obj, **kwargs)
+        form.base_fields["schedule"].queryset = get_objects_for_user(
+            request.user, "signage.view_schedule", form.base_fields["schedule"].queryset
+        )
+        return form
 
-class PageChildAdmin(PolymorphicChildModelAdmin):
+
+class PageChildAdmin(
+    GuardedModelAdminFilterMixin,
+    GuardedModelAdminObjectMixin,
+    GuardedModelAdminMixin,
+    PolymorphicChildModelAdmin,
+):
     base_model = models.Page
 
 
 @admin.register(models.Page)
-class PageParentAdmin(PolymorphicParentModelAdmin):
+class PageParentAdmin(
+    GuardedModelAdminFilterMixin,
+    GuardedModelAdminObjectMixin,
+    PolymorphicParentModelAdmin,
+):
     base_model = models.Page
     child_models = sorted(
         (
@@ -173,9 +215,23 @@ class PlaylistItemInline(OrderedTabularInline):
     ordering = ("order",)
     extra = 1
 
+    def get_formset(self, request, obj=None, **kwargs):
+        formset = super().get_formset(request, obj, **kwargs)
+        formset.form.base_fields.get("page").queryset = get_objects_for_user(
+            request.user,
+            "signage.view_page",
+            formset.form.base_fields.get("page").queryset,
+        )
+        return formset
+
 
 @admin.register(models.Playlist)
-class PlaylistAdmin(OrderedInlineModelAdminMixin, admin.ModelAdmin):
+class PlaylistAdmin(
+    OrderedInlineModelAdminMixin,
+    GuardedModelAdminFilterMixin,
+    GuardedModelAdminObjectMixin,
+    GuardedModelAdmin,
+):
     inlines = (PlaylistItemInline,)
 
 
@@ -185,11 +241,32 @@ class ScheduleItemInline(OrderedTabularInline):
     form = forms.ScheduleItemAdminForm
     formset = forms.ScheduleItemAdminInlineFormSet
 
+    def get_formset(self, request, obj=None, **kwargs):
+        formset = super().get_formset(request, obj, **kwargs)
+        formset.form.base_fields.get("playlist").queryset = get_objects_for_user(
+            request.user,
+            "signage.view_playlist",
+            formset.form.base_fields.get("playlist").queryset,
+        )
+        return formset
+
 
 @admin.register(models.Schedule)
-class ScheduleAdmin(OrderedInlineModelAdminMixin, admin.ModelAdmin):
+class ScheduleAdmin(
+    OrderedInlineModelAdminMixin,
+    GuardedModelAdminFilterMixin,
+    GuardedModelAdminObjectMixin,
+    GuardedModelAdmin,
+):
     inlines = (ScheduleItemInline,)
     list_display = ("name", "default", "ical")
+
+    def get_form(self, request, obj=None, **kwargs):
+        form = super().get_form(request, obj, **kwargs)
+        form.base_fields["default"].queryset = get_objects_for_user(
+            request.user, "signage.view_playlist", form.base_fields["default"].queryset
+        )
+        return form
 
     def ical(self, obj):
         return format_html(
