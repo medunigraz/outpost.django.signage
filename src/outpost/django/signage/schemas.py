@@ -246,6 +246,12 @@ class RestaurantPageSchema(BaseModel):
             "Time in seconds that this page should be visible before transitioning to the next page"
         ),
     )
+    restaurant_runtime: Optional[timedelta] = Field(
+        ...,
+        description=_(
+            "Time in seconds that each restaurant for this page should be visible before transitioning to the next restaurant"
+        ),
+    )
     restaurants: list[Restaurant]
 
 

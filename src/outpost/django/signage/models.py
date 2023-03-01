@@ -128,6 +128,10 @@ class Page(TimeStampedModel, PolymorphicModel):
         ordering = ("name",)
 
     def get_runtime(self):
+        func = getattr(self.get_real_instance(), "get_runtime", None)
+        if callable(func):
+            if func != self.get_runtime:
+                return func()
         return self.runtime
 
     def __str__(self):
@@ -456,10 +460,16 @@ class TYPO3EventPage(Page):
 
 class RestaurantPage(Page):
     restaurants = models.ManyToManyField("restaurant.Restaurant")
+    restaurant_runtime = models.DurationField(blank=True, null=True)
 
     class Meta:
         verbose_name = _("Restaurant page")
         verbose_name_plural = _("Restaurant pages")
+
+    def get_runtime(self):
+        if self.restaurant_runtime:
+            return self.restaurants.count() * self.restaurant_runtime
+        return self.runtime
 
     def get_message(self):
         today = timezone.now().today()

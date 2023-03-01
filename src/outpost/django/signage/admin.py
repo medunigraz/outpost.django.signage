@@ -156,6 +156,7 @@ class TYPO3EventPageAdmin(PageChildAdmin):
 class RestaurantPageAdmin(PageChildAdmin):
     base_model = models.RestaurantPage
     show_in_index = False
+    exclude = ("runtime",)
 
 
 class PlaylistItemInline(OrderedTabularInline):
