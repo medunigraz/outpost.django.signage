@@ -143,6 +143,8 @@ class Page(TimeStampedModel, PolymorphicModel):
     @property
     def page(self):
         real = self.get_real_instance_class()
+        if not real:
+            return "-"
         return real.__name__.removesuffix("Page")
 
 
