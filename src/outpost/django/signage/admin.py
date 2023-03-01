@@ -109,7 +109,7 @@ class PageParentAdmin(
         key=lambda c: c._meta.verbose_name,
     )
     list_filter = (PolymorphicChildModelFilter,)
-    list_display = ("name", "get_runtime", "page", "created", "modified")
+    list_display = ("name", "page", "created", "modified")
 
 
 @admin.register(models.WeatherPage)
