@@ -124,11 +124,14 @@ class Page(TimeStampedModel, PolymorphicModel):
         ),
     )
 
+    class Meta:
+        ordering = ("name",)
+
     def get_runtime(self):
         return self.runtime
 
     def __str__(self):
-        return self.name
+        return f"{self.name} ({self.page}@{self.modified})"
 
     def get_message(self):
         return self.get_real_instance().get_message()
