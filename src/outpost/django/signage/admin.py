@@ -58,6 +58,7 @@ class DisplayAdmin(
 ):
     list_display = (
         "name",
+        "pk",
         "hostname",
         "schedule",
         "room",
@@ -66,6 +67,7 @@ class DisplayAdmin(
         "online",
     )
     list_filter = ("schedule", "resolution", "enabled", "online")
+    readonly_fields = ("pk",)
 
     def get_form(self, request, obj=None, **kwargs):
         form = super().get_form(request, obj, **kwargs)
