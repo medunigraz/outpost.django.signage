@@ -12,10 +12,6 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
-from guardian.admin import (
-    GuardedModelAdmin,
-    GuardedModelAdminMixin,
-)
 from guardian.models import (
     GroupObjectPermission,
     UserObjectPermission,
@@ -30,6 +26,7 @@ from ordered_model.admin import (
     OrderedTabularInline,
 )
 from outpost.django.base.guardian import (
+    GuardedModelAdminMixin,
     GuardedModelAdminFilterMixin,
     GuardedModelAdminObjectMixin,
 )
@@ -54,7 +51,10 @@ class ResolutionAdmin(admin.ModelAdmin):
 
 @admin.register(models.Display)
 class DisplayAdmin(
-    GuardedModelAdminFilterMixin, GuardedModelAdminObjectMixin, GuardedModelAdmin
+    GuardedModelAdminFilterMixin,
+    GuardedModelAdminObjectMixin,
+    GuardedModelAdminMixin,
+    admin.ModelAdmin,
 ):
     list_display = (
         "name",
@@ -232,7 +232,8 @@ class PlaylistAdmin(
     OrderedInlineModelAdminMixin,
     GuardedModelAdminFilterMixin,
     GuardedModelAdminObjectMixin,
-    GuardedModelAdmin,
+    GuardedModelAdminMixin,
+    admin.ModelAdmin,
 ):
     inlines = (PlaylistItemInline,)
 
@@ -258,7 +259,8 @@ class ScheduleAdmin(
     OrderedInlineModelAdminMixin,
     GuardedModelAdminFilterMixin,
     GuardedModelAdminObjectMixin,
-    GuardedModelAdmin,
+    GuardedModelAdminMixin,
+    admin.ModelAdmin,
 ):
     inlines = (ScheduleItemInline,)
     list_display = ("name", "default", "ical")
