@@ -297,7 +297,6 @@ class PDFPage(Page):
         upload_to=Uuid4Upload,
         validators=(
             PDFValidator(
-                orientation=PDFOrientation.LANDSCAPE,
                 pages=range(1, 20),
             ),
         ),
