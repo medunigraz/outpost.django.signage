@@ -462,7 +462,7 @@ class TYPO3EventPage(Page):
 
 class RestaurantPage(Page):
     restaurants = models.ManyToManyField("restaurant.Restaurant")
-    restaurant_runtime = models.DurationField(blank=True, null=True)
+    restaurant_runtime = models.DurationField(default=timedelta(seconds=30))
 
     class Meta:
         verbose_name = _("Restaurant page")
