@@ -202,6 +202,13 @@ class RestaurantPageAdmin(PageChildAdmin):
     show_in_index = False
     exclude = ("runtime",)
 
+    def get_form(self, request, obj=None, **kwargs):
+        form = super().get_form(request, obj, **kwargs)
+        form.base_fields["restaurants"].queryset = form.base_fields["restaurants"].queryset.filter(
+            enabled=True
+        )
+        return form
+
 
 class PlaylistItemInline(OrderedTabularInline):
     model = models.PlaylistItem
