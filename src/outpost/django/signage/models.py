@@ -479,6 +479,7 @@ class RestaurantPage(Page):
             page=self.page,
             name=self.name,
             runtime=self.get_runtime(),
+            restaurant_runtime=self.restaurant_runtime,
             restaurants=[
                 schemas.Restaurant(
                     name=r.name,
