@@ -534,73 +534,6 @@ class PlaylistItem(OrderedModel):
         return f"{self.page}@{self.playlist}[{self.order}]"
 
 
-@dataclass
-class ScheduleItemCandidate:
-    start: datetime
-    end: datetime
-
-
-class Schedule(models.Model):
-    name = models.CharField(max_length=128, blank=False, null=False)
-    default = models.ForeignKey(
-        "Playlist",
-        on_delete=models.CASCADE,
-        help_text=_(
-            "Select a playlist that should be used if no other playlist is scheduled at the moment."
-        ),
-    )
-
-    def __str__(self):
-        return self.name
-
-    @property
-    def channel(self):
-        return f"{__name__}.{self.__class__.__name__}.{self.pk}"
-
-    def get_current(self, now):
-        scheduleitems = self.scheduleitem_set.filter(
-            start__lte=now, stop__gte=now, range__contains=now
-        ).order_by("-start", "stop")
-        today = datetime.combine(now.date(), time(), tzinfo=now.tzinfo)
-        for s in scheduleitems:
-            if bool(s.recurrences.between(today, today, dtstart=today, inc=True)):
-                return s.playlist
-        return self.default
-
-    def get_next_datetime(self, after):
-        scheduleitems = self.scheduleitem_set.filter(
-            stop__gt=after, range__endswith__gt=after
-        ).order_by("-start")
-        today = timezone.datetime.combine(after.date(), time(), tzinfo=after.tzinfo)
-        candidates = [
-            ScheduleItemCandidate(
-                datetime.combine(r.date(), s.start, tzinfo=s.range.lower.tzinfo),
-                datetime.combine(r.date(), s.stop, tzinfo=s.range.upper.tzinfo),
-            )
-            for s, r in (
-                (
-                    s,
-                    s.recurrences.after(
-                        today, inc=True, dtstart=after, dtend=s.range.upper
-                    ),
-                )
-                for s in scheduleitems
-                if s.recurrences.after(
-                    today, inc=True, dtstart=after, dtend=s.range.upper
-                )
-            )
-        ]
-        if not candidates:
-            logger.debug("There are no future scheduled items, ")
-            return None
-        candidate = min(candidates, key=lambda c: c.start)
-
-        if candidate.start < after and candidate.end >= after:
-            return candidate.end
-        else:
-            return candidate.start
-
-
 @signal_connect
 class ScheduleItem(models.Model):
     schedule = models.ForeignKey("Schedule", on_delete=models.CASCADE)
@@ -643,6 +576,84 @@ class ScheduleItem(models.Model):
             )
 
 
+@dataclass
+class TriggerCandidate:
+    start: datetime
+    end: datetime
+
+
+class Schedule(models.Model):
+    name = models.CharField(max_length=128, blank=False, null=False)
+    default = models.ForeignKey(
+        "Playlist",
+        on_delete=models.CASCADE,
+        help_text=_(
+            "Select a playlist that should be used if no other playlist is scheduled at the moment."
+        ),
+    )
+
+    def __str__(self):
+        return self.name
+
+    @property
+    def channel(self):
+        return f"{__name__}.{self.__class__.__name__}.{self.pk}"
+
+    def get_active_playlist(self, now):
+        scheduleitems = self.scheduleitem_set.filter(range__contains=now).order_by(
+            "-start", "stop"
+        )
+        today = datetime.combine(now.date(), time(), tzinfo=now.tzinfo)
+        for s in scheduleitems:
+            if bool(s.recurrences.between(today, today, dtstart=today, inc=True)):
+                return s.playlist
+        return self.default
+
+    def get_next_trigger(self, after):
+        scheduleitems = self.scheduleitem_set.filter(
+            range__endswith__gt=after
+        ).order_by("-start")
+        today = timezone.datetime.combine(
+            after.date(), time(), tzinfo=timezone.get_current_timezone()
+        )
+        candidates = [
+            TriggerCandidate(
+                datetime.combine(
+                    r.date(), s.start, tzinfo=timezone.get_current_timezone()
+                ),
+                datetime.combine(
+                    r.date(), s.stop, tzinfo=timezone.get_current_timezone()
+                ),
+            )
+            for s, r in (
+                (
+                    s,
+                    s.recurrences.after(
+                        today,
+                        inc=s.start < after.time() and s.stop > after.time(),
+                        dtstart=today,
+                        dtend=s.range.upper,
+                    ),
+                )
+                for s in scheduleitems
+                if s.recurrences.after(
+                    today,
+                    inc=s.start < after.time() and s.stop > after.time(),
+                    dtstart=today,
+                    dtend=s.range.upper,
+                )
+            )
+        ]
+        if not candidates:
+            logger.debug("There are no future scheduled items, ")
+            return None
+        candidate = min(candidates, key=lambda c: c.start)
+        if candidate.start < after and candidate.end >= after:
+            return candidate.end
+        else:
+            return candidate.start
+
+
 @signal_connect
 class Power(models.Model):
     name = models.CharField(max_length=128, blank=False, null=False)
@@ -654,21 +665,58 @@ class Power(models.Model):
     def channel(self):
         return f"{__name__}.{self.__class__.__name__}.{self.pk}"
 
-    @property
-    def current(self):
-        return {}
-
-    def status(self):
-        now = timezone.now()
+    def get_active_state(self, now):
         poweritems = self.poweritem_set.filter(
-            on__lte=now,
-            off__gte=now,
+            on__lte=now.time(),
+            off__gte=now.time(),
         )
-        today = now.replace(hour=0, minute=0, second=0, microsecond=0)
+        today = timezone.datetime.combine(
+            now.date(), time(), tzinfo=timezone.get_current_timezone()
+        )
         for p in poweritems:
             if bool(p.recurrences.between(today, today, dtstart=today, inc=True)):
                 return True
         return False
+
+    def get_next_trigger(self, after):
+        poweritems = self.poweritem_set.all()
+        today = timezone.datetime.combine(
+            after.date(), time(), tzinfo=timezone.get_current_timezone()
+        )
+        candidates = [
+            TriggerCandidate(
+                datetime.combine(
+                    r.date(), s.on, tzinfo=timezone.get_current_timezone()
+                ),
+                datetime.combine(
+                    r.date(), s.off, tzinfo=timezone.get_current_timezone()
+                ),
+            )
+            for s, r in (
+                (
+                    s,
+                    s.recurrences.after(
+                        today,
+                        inc=s.on < after.time() and s.off > after.time(),
+                        dtstart=today,
+                    ),
+                )
+                for s in poweritems
+                if s.recurrences.after(
+                    today,
+                    inc=s.on < after.time() and s.off > after.time(),
+                    dtstart=today,
+                )
+            )
+        ]
+        if not candidates:
+            logger.debug("There are no future power items, ")
+            return None
+        candidate = min(candidates, key=lambda c: c.start)
+        if candidate.start < after and candidate.end >= after:
+            return candidate.end
+        else:
+            return candidate.start
 
 
 class PowerItem(models.Model):
