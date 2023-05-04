@@ -488,7 +488,7 @@ class RestaurantPage(Page):
                     city=r.city,
                     phone=r.phone,
                     url=r.url,
-                    position=schemas.Point(x=r.position.x, y=r.position.y),
+                    position=schemas.Point(x=r.position.x, y=r.position.y) if r.position else None,
                     meals=[
                         schemas.Meal(
                             description=m.description, price=m.price, diet=m.diet.name

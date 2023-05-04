@@ -233,7 +233,7 @@ class Restaurant(BaseModel):
     city: str
     phone: str
     url: Optional[str]
-    position: Point
+    position: Optional[Point]
     meals: list[Meal]
 
 
