@@ -78,6 +78,7 @@ class DisplayConsumer(JsonWebsocketConsumer):
 
         self.accept()
         if not self.display.power:
+            self.send_json(schemas.PowerMessage(power=True).dict())
             return
         async_to_sync(self.channel_layer.group_add)(
             self.display.power.channel, self.channel_name
