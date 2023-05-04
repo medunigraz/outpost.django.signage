@@ -26,8 +26,8 @@ from ordered_model.admin import (
     OrderedTabularInline,
 )
 from outpost.django.base.guardian import (
-    GuardedModelAdminMixin,
     GuardedModelAdminFilterMixin,
+    GuardedModelAdminMixin,
     GuardedModelAdminObjectMixin,
 )
 from polymorphic.admin import (
@@ -204,9 +204,9 @@ class RestaurantPageAdmin(PageChildAdmin):
 
     def get_form(self, request, obj=None, **kwargs):
         form = super().get_form(request, obj, **kwargs)
-        form.base_fields["restaurants"].queryset = form.base_fields["restaurants"].queryset.filter(
-            enabled=True
-        )
+        form.base_fields["restaurants"].queryset = form.base_fields[
+            "restaurants"
+        ].queryset.filter(enabled=True)
         return form
 
 

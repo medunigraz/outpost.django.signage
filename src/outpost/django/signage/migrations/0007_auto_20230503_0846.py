@@ -9,18 +9,24 @@ import outpost.django.signage.validators
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('signage', '0006_restaurantpage_restaurant_runtime'),
+        ("signage", "0006_restaurantpage_restaurant_runtime"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='pdfpage',
-            name='pdf',
-            field=models.FileField(help_text='PDF file to be used as a fullscreen page.', upload_to=outpost.django.base.utils.Uuid4Upload, validators=[outpost.django.signage.validators.PDFValidator(pages=range(1, 20))]),
+            model_name="pdfpage",
+            name="pdf",
+            field=models.FileField(
+                help_text="PDF file to be used as a fullscreen page.",
+                upload_to=outpost.django.base.utils.Uuid4Upload,
+                validators=[
+                    outpost.django.signage.validators.PDFValidator(pages=range(1, 20))
+                ],
+            ),
         ),
         migrations.AlterField(
-            model_name='restaurantpage',
-            name='restaurant_runtime',
+            model_name="restaurantpage",
+            name="restaurant_runtime",
             field=models.DurationField(default=datetime.timedelta(seconds=30)),
         ),
     ]
