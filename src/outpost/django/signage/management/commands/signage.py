@@ -19,6 +19,13 @@ from ...conf import settings
 logger = logging.getLogger(__name__)
 
 
+def get_model_objects(model, filters=None):
+    qs = model.objects.all()
+    if filters:
+        qs = qs.filter(**filters)
+    return list(qs)
+
+
 class SignageServer(StatelessServer):
     def __init__(self, application, channel_layer, channel, max_applications=1000):
         super().__init__(application, max_applications)
@@ -27,12 +34,16 @@ class SignageServer(StatelessServer):
             raise ValueError("Channel layer is not valid")
         self.channel = channel
         self.scheduler = AsyncIOScheduler(
-            jobstores=settings.SIGNAGE_SCHEDULER_JOB_STORES
+            jobstores=settings.SIGNAGE_SCHEDULER_JOB_STORES,
+            timezone=timezone.utc,
+            job_defaults={
+                "misfire_grace_time": 10,
+            },
         )
         self.scheduler.start()
         self.schedules = dict()
         self.powers = dict()
-        now = timezone.localtime()
+        now = timezone.now()
         for s in models.Schedule.objects.all():
             trigger = s.get_next_trigger(now)
             if not trigger:
@@ -44,7 +55,7 @@ class SignageServer(StatelessServer):
             self.schedules[s.pk] = self.scheduler.add_job(
                 self.schedule,
                 "date",
-                run_date=trigger,
+                run_date=trigger.astimezone(timezone.utc),
                 kwargs={"schedule": s, "after": trigger},
             )
         for p in models.Power.objects.all():
@@ -58,12 +69,11 @@ class SignageServer(StatelessServer):
             self.powers[p.pk] = self.scheduler.add_job(
                 self.power,
                 "date",
-                run_date=trigger,
+                run_date=trigger.astimezone(timezone.utc),
                 kwargs={"power": p, "after": trigger},
             )
 
-    async def schedule(self, schedule, after):
-        self.schedules.get(schedule.pk).remove()
+    def sync_schedule(self, schedule, after):
         logger.debug(f"Updating schedule {schedule} after {after}")
         trigger = schedule.get_next_trigger(after)
         if not trigger:
@@ -74,49 +84,56 @@ class SignageServer(StatelessServer):
         logger.debug(f"Next update for schedule {schedule} at {trigger}")
         p = schedule.get_active_playlist(after)
         logger.debug(f"Starting playlist {p} from {schedule}")
-        await self.channel_layer.group_send(
-            schedule.channel, {"type": "playlist.update", "playlist": p.pk}
-        )
         self.schedules[schedule.pk] = self.scheduler.add_job(
             self.schedule,
             "date",
-            run_date=trigger,
+            run_date=trigger.astimezone(timezone.utc),
             kwargs={"schedule": schedule, "after": trigger},
         )
+        return p
 
-    async def power(self, power, after):
-        self.powers.get(power.pk).remove()
+    async def schedule(self, schedule, after):
+        p = await database_sync_to_async(self.sync_schedule)(schedule, after)
+        if p is None:
+            return
+        await self.channel_layer.group_send(
+            schedule.channel, {"type": "playlist.update", "playlist": p.pk}
+        )
+
+    def sync_power(self, power, after):
         logger.debug(f"Updating power {power} after {after}")
         trigger = power.get_next_trigger(after)
-        if not trigger:
-            logger.info(f"No more events for {power} after {after}")
-            if power.pk in self.powers:
-                del self.powers[power.pk]
-            return
         logger.debug(f"Next update for power {power} at {trigger}")
         p = power.get_active_state(after)
         logger.debug(f"Setting power to {p} for {power}")
-        await self.channel_layer.group_send(
-            power.channel, {"type": "power.on" if p else "power.off"}
-        )
         self.powers[power.pk] = self.scheduler.add_job(
             self.power,
             "date",
-            run_date=trigger,
+            run_date=trigger.astimezone(timezone.utc),
             kwargs={"power": power, "after": trigger},
+        )
+        return p
+
+    async def power(self, power, after):
+        p = await database_sync_to_async(self.sync_power)(power, after)
+        await self.channel_layer.group_send(
+            power.channel, {"type": "power.on" if p else "power.off"}
         )
 
     async def handle(self):
         now = timezone.localtime()
-        for s in models.Schedule.objects.all():
-            p = s.get_active_playlist(now)
+        schedules = await database_sync_to_async(get_model_objects)(models.Schedule)
+        for s in schedules:
+            p = await database_sync_to_async(s.get_active_playlist)(now)
             await self.channel_layer.group_send(
                 s.channel, {"type": "playlist.update", "playlist": p.pk}
             )
-        for p in models.Power.objects.all():
+        powers = await database_sync_to_async(get_model_objects)(models.Power)
+        for p in powers:
+            state = await database_sync_to_async(p.get_active_state)(now)
             await self.channel_layer.group_send(
                 s.channel,
-                {"type": "power.on" if p.get_active_state(now) else "power.off"},
+                {"type": "power.on" if state else "power.off"},
             )
         while True:
             message = await self.channel_layer.receive(self.channel)

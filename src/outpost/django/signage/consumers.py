@@ -37,7 +37,9 @@ class FrontendConsumer(JsonWebsocketConsumer):
                 self.display.schedule.channel, self.channel_name
             )
         self.send_json(
-            self.display.schedule.get_current(timezone.now()).get_message().dict()
+            self.display.schedule.get_active_playlist(timezone.now())
+            .get_message()
+            .dict()
         )
 
     def receive_json(self, content):
@@ -83,7 +85,11 @@ class DisplayConsumer(JsonWebsocketConsumer):
         async_to_sync(self.channel_layer.group_add)(
             self.display.power.channel, self.channel_name
         )
-        self.send_json(schemas.PowerMessage(power=self.display.power.status()).dict())
+        self.send_json(
+            schemas.PowerMessage(
+                power=self.display.power.get_active_state(timezone.now())
+            ).dict()
+        )
 
     def disconnect(self, close_code):
         if self.display.power:

@@ -602,37 +602,38 @@ class Schedule(models.Model):
         return f"{__name__}.{self.__class__.__name__}.{self.pk}"
 
     def get_active_playlist(self, now):
-        scheduleitems = self.scheduleitem_set.filter(range__contains=now).order_by(
-            "-start", "stop"
+        tz = timezone.get_current_timezone()
+        dt = now.astimezone(tz)
+        scheduleitems = self.scheduleitem_set.filter(
+            range__contains=dt, stop__gte=dt.time()
+        ).order_by("start", "stop")
+        today = timezone.get_current_timezone().localize(
+            timezone.datetime.combine(now.date(), time())
         )
-        today = datetime.combine(now.date(), time(), tzinfo=now.tzinfo)
         for s in scheduleitems:
             if bool(s.recurrences.between(today, today, dtstart=today, inc=True)):
-                return s.playlist
+                if s.start >= dt.time():
+                    return s.playlist
+                return self.default
         return self.default
 
     def get_next_trigger(self, after):
+        tz = timezone.get_current_timezone()
         scheduleitems = self.scheduleitem_set.filter(
             range__endswith__gt=after
         ).order_by("-start")
-        today = timezone.datetime.combine(
-            after.date(), time(), tzinfo=timezone.get_current_timezone()
-        )
+        today = tz.localize(timezone.datetime.combine(after.date(), time()))
         candidates = [
             TriggerCandidate(
-                datetime.combine(
-                    r.date(), s.start, tzinfo=timezone.get_current_timezone()
-                ),
-                datetime.combine(
-                    r.date(), s.stop, tzinfo=timezone.get_current_timezone()
-                ),
+                tz.localize(timezone.datetime.combine(r.date(), s.start)),
+                tz.localize(timezone.datetime.combine(r.date(), s.stop)),
             )
             for s, r in (
                 (
                     s,
                     s.recurrences.after(
                         today,
-                        inc=s.start < after.time() and s.stop > after.time(),
+                        inc=s.stop > after.time(),
                         dtstart=today,
                         dtend=s.range.upper,
                     ),
@@ -640,7 +641,7 @@ class Schedule(models.Model):
                 for s in scheduleitems
                 if s.recurrences.after(
                     today,
-                    inc=s.start < after.time() and s.stop > after.time(),
+                    inc=s.stop > after.time(),
                     dtstart=today,
                     dtend=s.range.upper,
                 )
@@ -649,8 +650,10 @@ class Schedule(models.Model):
         if not candidates:
             logger.debug("There are no future scheduled items, ")
             return None
-        candidate = min(candidates, key=lambda c: c.start)
-        if candidate.start < after and candidate.end >= after:
+        candidate = min(
+            filter(lambda c: c.end >= after, candidates), key=lambda c: c.start
+        )
+        if candidate.start <= after and candidate.end >= after:
             return candidate.end
         else:
             return candidate.start
@@ -668,12 +671,11 @@ class Power(models.Model):
         return f"{__name__}.{self.__class__.__name__}.{self.pk}"
 
     def get_active_state(self, now):
-        poweritems = self.poweritem_set.filter(
-            on__lte=now.time(),
-            off__gte=now.time(),
-        )
-        today = timezone.datetime.combine(
-            now.date(), time(), tzinfo=timezone.get_current_timezone()
+        logger.info(f"Getting active power state for {self} at {now}")
+        dt = now.astimezone(timezone.localtime().tzinfo)
+        poweritems = self.poweritem_set.filter(on__lte=dt.time(), off__gt=dt.time())
+        today = timezone.get_current_timezone().localize(
+            timezone.datetime.combine(dt.date(), time())
         )
         for p in poweritems:
             if bool(p.recurrences.between(today, today, dtstart=today, inc=True)):
@@ -681,32 +683,28 @@ class Power(models.Model):
         return False
 
     def get_next_trigger(self, after):
+        tz = timezone.get_current_timezone()
+        dt = after.astimezone(tz)
         poweritems = self.poweritem_set.all()
-        today = timezone.datetime.combine(
-            after.date(), time(), tzinfo=timezone.get_current_timezone()
-        )
+        today = tz.localize(timezone.datetime.combine(dt.date(), time()))
         candidates = [
             TriggerCandidate(
-                datetime.combine(
-                    r.date(), s.on, tzinfo=timezone.get_current_timezone()
-                ),
-                datetime.combine(
-                    r.date(), s.off, tzinfo=timezone.get_current_timezone()
-                ),
+                tz.localize(timezone.datetime.combine(r.date(), s.on)),
+                tz.localize(timezone.datetime.combine(r.date(), s.off)),
             )
             for s, r in (
                 (
                     s,
                     s.recurrences.after(
                         today,
-                        inc=s.on < after.time() and s.off > after.time(),
+                        inc=s.off > after.time(),
                         dtstart=today,
                     ),
                 )
                 for s in poweritems
                 if s.recurrences.after(
                     today,
-                    inc=s.on < after.time() and s.off > after.time(),
+                    inc=s.off > after.time(),
                     dtstart=today,
                 )
             )
@@ -714,8 +712,10 @@ class Power(models.Model):
         if not candidates:
             logger.debug("There are no future power items, ")
             return None
-        candidate = min(candidates, key=lambda c: c.start)
-        if candidate.start < after and candidate.end >= after:
+        candidate = min(
+            filter(lambda c: c.end >= after, candidates), key=lambda c: c.start
+        )
+        if candidate.start <= after and candidate.end >= after:
             return candidate.end
         else:
             return candidate.start

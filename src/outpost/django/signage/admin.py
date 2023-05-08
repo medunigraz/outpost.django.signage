@@ -303,8 +303,9 @@ class PowerAdmin(OrderedInlineModelAdminMixin, admin.ModelAdmin):
     def save_related(self, request, form, formsets, change):
         super().save_related(request, form, formsets, change)
         # import pudb; pu.db
+        now = timezone.now()
         channel_layer = get_channel_layer()
-        msg_type = "power.on" if form.instance.status() else "power.off"
+        msg_type = "power.on" if form.instance.get_active_state(now) else "power.off"
         async_to_sync(channel_layer.group_send)(
             form.instance.channel, {"type": msg_type}
         )
