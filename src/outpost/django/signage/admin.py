@@ -271,6 +271,7 @@ class ScheduleAdmin(
 ):
     inlines = (ScheduleItemInline,)
     list_display = ("name", "default", "ical")
+    actions = ("publish",)
 
     def get_form(self, request, obj=None, **kwargs):
         form = super().get_form(request, obj, **kwargs)
@@ -287,6 +288,13 @@ class ScheduleAdmin(
 
     ical.short_description = _("Calendar")
 
+    def publish(self, request, queryset):
+        for s in queryset.all():
+            s.publish()
+            self.message_user(request, _("{s} successfully published.").format(s=s))
+
+    publish.short_description = _("Publish schedule to connected displays")
+
 
 class PowerItemInline(OrderedTabularInline):
     model = models.PowerItem
@@ -299,6 +307,7 @@ class PowerItemInline(OrderedTabularInline):
 @admin.register(models.Power)
 class PowerAdmin(OrderedInlineModelAdminMixin, admin.ModelAdmin):
     inlines = (PowerItemInline,)
+    actions = ("publish",)
 
     def save_related(self, request, form, formsets, change):
         super().save_related(request, form, formsets, change)
@@ -309,3 +318,10 @@ class PowerAdmin(OrderedInlineModelAdminMixin, admin.ModelAdmin):
         async_to_sync(channel_layer.group_send)(
             form.instance.channel, {"type": msg_type}
         )
+
+    def publish(self, request, queryset):
+        for p in queryset.all():
+            p.publish()
+            self.message_user(request, _("{p} successfully published.").format(p=p))
+
+    publish.short_description = _("Publish power to connected displays")

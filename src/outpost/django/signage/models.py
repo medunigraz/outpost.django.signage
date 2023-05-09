@@ -12,6 +12,7 @@ from hashlib import sha256
 
 import asyncssh
 import reversion
+from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 from ckeditor_uploader.fields import RichTextUploadingField
 from django.conf import settings
@@ -658,6 +659,13 @@ class Schedule(models.Model):
         else:
             return candidate.start
 
+    def publish(self):
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.send)(
+            settings.SIGNAGE_SCHEDULER_CHANNEL,
+            {"type": "schedule", "schedule": self.pk},
+        )
+
 
 @signal_connect
 class Power(models.Model):
@@ -719,6 +727,12 @@ class Power(models.Model):
             return candidate.end
         else:
             return candidate.start
+
+    def publish(self):
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.send)(
+            settings.SIGNAGE_SCHEDULER_CHANNEL, {"type": "power", "power": self.pk}
+        )
 
 
 class PowerItem(models.Model):

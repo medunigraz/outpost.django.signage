@@ -137,37 +137,41 @@ class SignageServer(StatelessServer):
             )
         while True:
             message = await self.channel_layer.receive(self.channel)
-            print(message)
             t = message.get("type", None)
             if not t:
-                raise ValueError("Worker received message with no type.")
+                logger.error("Worker received message with no type.")
+                continue
 
             h = getattr(self, f"handle_{t}", None)
             if not inspect.iscoroutinefunction(h):
-                raise ValueError(f"Worker received message with unsupported type {t}.")
+                logger.error(f"Worker received message with unsupported type {t}.")
+                continue
 
             await h(message)
 
     async def handle_schedule(self, message):
         pk = message.get("schedule")
+        logger.info(f"Updating schedule {pk} from channels.")
         try:
             schedule = models.Schedule.objects.get(pk=pk)
         except models.Schedule.DoesNotExist:
             logger.error("Unknown schedule {pk}")
             return
+        if schedule.pk in self.schedules:
+            self.schedules.get(schedule.pk).remove()
         await self.schedule(schedule, timezone.localtime())
 
     async def handle_power(self, message):
         pk = message.get("power")
+        logger.info(f"Updating power {pk} from channels.")
         try:
             power = models.Power.objects.get(pk=pk)
         except models.Power.DoesNotExist:
             logger.error("Unknown power {pk}")
             return
+        if power.pk in self.powers:
+            self.powers.get(power.pk).remove()
         await self.power(power, timezone.localtime())
-
-    async def handle_ping(self, message):
-        print("Pong!")
 
 
 class Command(BaseCommand):
