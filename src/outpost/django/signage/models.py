@@ -613,9 +613,8 @@ class Schedule(models.Model):
         )
         for s in scheduleitems:
             if bool(s.recurrences.between(today, today, dtstart=today, inc=True)):
-                if s.start >= dt.time():
+                if s.start <= dt.time():
                     return s.playlist
-                return self.default
         return self.default
 
     def get_next_trigger(self, after):
