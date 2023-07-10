@@ -61,12 +61,13 @@ class DisplayAdmin(
         "pk",
         "hostname",
         "schedule",
+        "power",
         "room",
         "resolution",
         "enabled",
         "online",
     )
-    list_filter = ("schedule", "resolution", "enabled", "online")
+    list_filter = ("schedule", "power", "resolution", "enabled", "online")
     readonly_fields = ("pk",)
 
     def get_form(self, request, obj=None, **kwargs):
