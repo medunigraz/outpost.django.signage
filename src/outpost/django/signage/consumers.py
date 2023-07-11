@@ -42,7 +42,7 @@ class FrontendConsumer(JsonWebsocketConsumer):
             .dict()
         )
 
-    def receive_json(self, content):
+    def receive(self, text_data=None, bytes_data=None, **kwargs):
         return
 
     def disconnect(self, close_code):
