@@ -30,7 +30,7 @@ def read(*names, **kwargs):
 setup(
     name="outpost.django.signage",
     license="BSD",
-    description="MUG API Backend - signage",
+    description="MUG API Backend - Signage",
     long_description=re.compile("^.. start-badges.*^.. end-badges", re.M | re.S).sub(
         "", read("README.rst")
     ),

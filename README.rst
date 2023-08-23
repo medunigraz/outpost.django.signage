@@ -1,6 +1,6 @@
-==================
-Outpost Django API
-==================
+======================
+Outpost Django Signage
+======================
 
 .. start-badges
 
@@ -14,31 +14,31 @@ Outpost Django API
         | |codecov|
 
 .. |docs| image:: https://readthedocs.org/projects/outpost/badge/?style=flat
-    :target: https://readthedocs.org/projects/outpost.django.api
+    :target: https://readthedocs.org/projects/outpost.django.signage
     :alt: Documentation Status
 
-.. |travis| image:: https://travis-ci.org/medunigraz/outpost.django.api.svg?branch=master
+.. |travis| image:: https://travis-ci.org/medunigraz/outpost.django.signage.svg?branch=master
     :alt: Travis-CI Build Status
-    :target: https://travis-ci.org/medunigraz/outpost.django.api
+    :target: https://travis-ci.org/medunigraz/outpost.django.signage
 
-.. |requires| image:: https://requires.io/github/medunigraz/outpost.django.api/requirements.svg?branch=master
+.. |requires| image:: https://requires.io/github/medunigraz/outpost.django.signage/requirements.svg?branch=master
     :alt: Requirements Status
-    :target: https://requires.io/github/medunigraz/outpost.django.api/requirements/?branch=master
+    :target: https://requires.io/github/medunigraz/outpost.django.signage/requirements/?branch=master
 
-.. |codecov| image:: https://codecov.io/github/medunigraz/outpost.django.api/coverage.svg?branch=master
+.. |codecov| image:: https://codecov.io/github/medunigraz/outpost.django.signage/coverage.svg?branch=master
     :alt: Coverage Status
-    :target: https://codecov.io/github/medunigraz/outpost.django.api
+    :target: https://codecov.io/github/medunigraz/outpost.django.signage
 
 .. end-badges
 
-Provide up-to-date event and lecturer data from CAMPUSonline for digital PKE door signs.
+Manage public displays, their power-schedules and the scheduled content.
 
 * Free software: BSD license
 
 Documentation
 =============
 
-https://outpost.django.api.readthedocs.io/
+https://outpost.django.signage.readthedocs.io/
 
 Development
 ===========
