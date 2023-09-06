@@ -22,7 +22,7 @@ from django.contrib.gis.geos import (
     LineString,
     Point,
 )
-from django.contrib.postgres.fields import DateTimeRangeField
+from django.contrib.postgres.fields import DateTimeRangeField, JSONField
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
 from django.db.models import Q
@@ -34,7 +34,7 @@ from ordered_model.models import OrderedModel
 from outpost.django.base.decorators import signal_connect
 from outpost.django.base.models import NetworkedDeviceMixin
 from outpost.django.base.utils import Uuid4Upload
-from outpost.django.base.validators import ImageValidator
+from outpost.django.base.validators import ImageValidator, FileValidator
 from outpost.django.campusonline.models import Event as CampusOnlineEvent
 from outpost.django.weather.models import Location as WeatherLocation
 from polymorphic.models import PolymorphicModel
@@ -88,6 +88,12 @@ class Display(NetworkedDeviceMixin, models.Model):
     resolution = models.ForeignKey(Resolution, on_delete=models.CASCADE)
     dpi = models.PositiveIntegerField(null=True, blank=True)
     connected = models.DateTimeField(null=True, editable=False)
+    screen = models.ImageField(
+        upload_to=Uuid4Upload,
+        null=True,
+        validators=(FileValidator(mimetypes=["image/png"]),),
+    )
+    config = JSONField(null=True)
 
     def __str__(self):
         return f"{self.name} ({self.hostname})"

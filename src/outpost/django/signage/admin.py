@@ -60,15 +60,17 @@ class DisplayAdmin(
         "name",
         "pk",
         "hostname",
-        "schedule",
-        "power",
+        "schedule_link",
+        "power_link",
         "room",
         "resolution",
         "enabled",
         "online",
+        "power_state",
+        "playlist_state",
     )
     list_filter = ("schedule", "power", "resolution", "enabled", "online")
-    readonly_fields = ("pk",)
+    readonly_fields = ("pk", "config", "screen")
 
     def get_form(self, request, obj=None, **kwargs):
         form = super().get_form(request, obj, **kwargs)
@@ -76,6 +78,39 @@ class DisplayAdmin(
             request.user, "signage.view_schedule", form.base_fields["schedule"].queryset
         )
         return form
+
+    def schedule_link(self, obj):
+        if not obj.schedule:
+            return "-"
+        url = reverse("admin:signage_schedule_change", args=(obj.schedule.pk,))
+        return format_html("<a href='{}'>{}</a>", url, obj.schedule)
+
+    schedule_link.admin_order_field = "schedule"
+    schedule_link.short_description = _("Schedule")
+
+    def power_link(self, obj):
+        if not obj.power:
+            return "-"
+        url = reverse("admin:signage_power_change", args=(obj.power.pk,))
+        return format_html("<a href='{}'>{}</a>", url, obj.power)
+
+    power_link.admin_order_field = "power"
+    power_link.short_description = _("Power")
+
+    def power_state(self, obj):
+        if not obj.power:
+            return False
+        return obj.power.get_active_state(timezone.now())
+
+    power_state.short_description = _("Power state")
+    power_state.boolean = True
+
+    def playlist_state(self, obj):
+        if not obj.schedule:
+            return "-"
+        return obj.schedule.get_active_playlist(timezone.now())
+
+    playlist_state.short_description = _("Playlist state")
 
 
 class PageChildAdmin(

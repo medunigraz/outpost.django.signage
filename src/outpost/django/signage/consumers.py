@@ -1,10 +1,12 @@
 import json
 from datetime import timedelta
+from base64 import b64decode
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from asgiref.sync import async_to_sync
 from channels.consumer import AsyncConsumer
 from channels.generic.websocket import JsonWebsocketConsumer
+from django.core.files.base import ContentFile
 from django.core.serializers.json import DjangoJSONEncoder
 from django.utils import timezone
 
@@ -98,7 +100,13 @@ class DisplayConsumer(JsonWebsocketConsumer):
             )
 
     def receive_json(self, content):
-        return
+        self.display.config = content.get("config")
+        screen = content.get("screen")
+        if screen:
+            self.display.screen = ContentFile(
+                b64decode(screen), f"screen-{self.display.pk}.png"
+            )
+        self.display.save()
 
     def power_on(self, *args):
         self.send_json(schemas.PowerMessage(power=True).dict())
