@@ -612,7 +612,7 @@ class Schedule(models.Model):
         tz = timezone.get_current_timezone()
         dt = now.astimezone(tz)
         scheduleitems = self.scheduleitem_set.filter(
-            range__contains=dt, stop__gte=dt.time()
+            range__contains=dt, stop__gt=dt.time()
         ).order_by("start", "stop")
         today = timezone.get_current_timezone().localize(
             timezone.datetime.combine(now.date(), time())
