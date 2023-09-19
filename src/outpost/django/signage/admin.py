@@ -46,7 +46,7 @@ from .conf import settings
 
 @admin.register(models.Resolution)
 class ResolutionAdmin(admin.ModelAdmin):
-    list_display = ("pk", "width", "height")
+    list_display = ("pk", "width", "height", "dpi", "scale")
 
 
 @admin.register(models.Display)

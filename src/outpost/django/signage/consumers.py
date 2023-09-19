@@ -82,14 +82,19 @@ class DisplayConsumer(JsonWebsocketConsumer):
 
         self.accept()
         if not self.display.power:
-            self.send_json(schemas.PowerMessage(power=True).dict())
+            self.send_json(
+                schemas.PowerMessage(
+                    power=True, scale=self.display.resolution.scale
+                ).dict()
+            )
             return
         async_to_sync(self.channel_layer.group_add)(
             self.display.power.channel, self.channel_name
         )
         self.send_json(
             schemas.PowerMessage(
-                power=self.display.power.get_active_state(timezone.now())
+                power=self.display.power.get_active_state(timezone.now()),
+                scale=self.display.resolution.scale,
             ).dict()
         )
 
@@ -109,7 +114,15 @@ class DisplayConsumer(JsonWebsocketConsumer):
         self.display.save()
 
     def power_on(self, *args):
-        self.send_json(schemas.PowerMessage(power=True).dict())
+        self.send_json(
+            schemas.PowerMessage(
+                power=True, scale=self.display.resolution.scale
+            ).dict()
+        )
 
     def power_off(self, *args):
-        self.send_json(schemas.PowerMessage(power=False).dict())
+        self.send_json(
+            schemas.PowerMessage(
+                power=False, scale=self.display.resolution.scale
+            ).dict()
+        )

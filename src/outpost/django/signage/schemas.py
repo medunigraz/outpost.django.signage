@@ -280,3 +280,4 @@ class PlaylistMessage(BaseModel):
 
 class PowerMessage(BaseModel):
     power: bool
+    scale: float

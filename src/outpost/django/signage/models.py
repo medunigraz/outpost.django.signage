@@ -57,9 +57,11 @@ logger = logging.getLogger(__name__)
 class Resolution(models.Model):
     width = models.PositiveIntegerField(null=True, blank=True)
     height = models.PositiveIntegerField(null=True, blank=True)
+    dpi = models.PositiveIntegerField(default=72, null=True, blank=True)
+    scale = models.DecimalField(default=1.0, max_digits=3, decimal_places=2)
 
     def __str__(self):
-        return f"{self.width}x{self.height}"
+        return f"{self.width}x{self.height} ({self.dpi}DPI)"
 
 
 @signal_connect
