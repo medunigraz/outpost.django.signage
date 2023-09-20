@@ -120,7 +120,7 @@ class PDFPageSchema(BaseModel):
             "Relative URL to the PDF document that should be displayed on the page"
         ),
     )
-    pages: int
+    pages: list[str] = Field(..., description=_("Relative URL to rendered page image"))
     page_runtime: timedelta = Field(
         ...,
         description=_(
