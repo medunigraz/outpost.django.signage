@@ -22,7 +22,10 @@ from django.contrib.gis.geos import (
     LineString,
     Point,
 )
-from django.contrib.postgres.fields import DateTimeRangeField, JSONField
+from django.contrib.postgres.fields import (
+    DateTimeRangeField,
+    JSONField,
+)
 from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
 from django.core.validators import URLValidator
@@ -35,7 +38,10 @@ from ordered_model.models import OrderedModel
 from outpost.django.base.decorators import signal_connect
 from outpost.django.base.models import NetworkedDeviceMixin
 from outpost.django.base.utils import Uuid4Upload
-from outpost.django.base.validators import ImageValidator, FileValidator
+from outpost.django.base.validators import (
+    FileValidator,
+    ImageValidator,
+)
 from outpost.django.campusonline.models import Event as CampusOnlineEvent
 from outpost.django.weather.models import Location as WeatherLocation
 from polymorphic.models import PolymorphicModel
