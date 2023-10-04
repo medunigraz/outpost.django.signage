@@ -563,6 +563,7 @@ class Playlist(models.Model):
 
     def get_message(self):
         return schemas.PlaylistMessage(
+            id=self.pk,
             pages=[
                 p.page.get_message() for p in self.playlistitem_set.filter(enabled=True)
             ]
