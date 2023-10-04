@@ -173,6 +173,7 @@ class WeatherPage(Page):
     def get_message(self):
         return schemas.WeatherPageSchema(
             page=self.page,
+            id=self.pk,
             name=self.name,
             runtime=self.get_runtime(),
             forecast=self.location.forecast,
@@ -191,6 +192,7 @@ class HTMLPage(Page):
     def get_message(self):
         return schemas.HTMLPageSchema(
             page=self.page,
+            id=self.pk,
             name=self.name,
             runtime=self.get_runtime(),
             content=self.content,
@@ -207,6 +209,7 @@ class RichTextPage(Page):
     def get_message(self):
         return schemas.RichTextPageSchema(
             page=self.page,
+            id=self.pk,
             name=self.name,
             runtime=self.get_runtime(),
             content=self.content,
@@ -234,6 +237,7 @@ class ImagePage(Page):
     def get_message(self):
         return schemas.ImagePageSchema(
             page=self.page,
+            id=self.pk,
             name=self.name,
             runtime=self.get_runtime(),
             url=self.image.url,
@@ -284,6 +288,7 @@ class VideoPage(Page):
     def get_message(self):
         return schemas.VideoPageSchema(
             page=self.page,
+            id=self.pk,
             name=self.name,
             runtime=self.get_runtime(),
             url=self.video.url,
@@ -302,7 +307,9 @@ class WebsitePage(Page):
 
     def get_message(self):
         return schemas.WebsitePageSchema(
-            page=self.page, name=self.name, runtime=self.get_runtime(), url=self.url
+            page=self.page,
+            id=self.pk,
+            name=self.name, runtime=self.get_runtime(), url=self.url
         )
 
 
@@ -339,6 +346,7 @@ class PDFPage(Page):
     def get_message(self):
         return schemas.PDFPageSchema(
             page=self.page,
+            id=self.pk,
             name=self.name,
             runtime=self.get_runtime(),
             url=self.pdf.url,
@@ -364,6 +372,7 @@ class CampusOnlineEventPage(Page):
     def get_message(self):
         return schemas.CampusOnlineEventPageSchema(
             page=self.page,
+            id=self.pk,
             name=self.name,
             runtime=self.get_runtime(),
             items=[
@@ -395,6 +404,7 @@ class LiveChannelPage(Page):
     def get_message(self):
         return schemas.LiveChannelPageSchema(
             page=self.page,
+            id=self.pk,
             name=self.name,
             runtime=self.get_runtime(),
             url=reverse("signage:page-livechannel", kwargs={"pk": self.pk}),
@@ -413,6 +423,7 @@ class TYPO3NewsPage(Page):
     def get_message(self):
         return schemas.TYPO3NewsPageSchema(
             page=self.page,
+            id=self.pk,
             name=self.name,
             runtime=self.get_runtime(),
             title=self.news.title,
@@ -447,6 +458,7 @@ class TYPO3EventPage(Page):
     def get_message(self):
         return schemas.TYPO3EventPageSchema(
             page=self.page,
+            id=self.pk,
             name=self.name,
             runtime=self.get_runtime(),
             title=self.event.title,
@@ -492,6 +504,7 @@ class RestaurantPage(Page):
         today = timezone.now().today()
         return schemas.RestaurantPageSchema(
             page=self.page,
+            id=self.pk,
             name=self.name,
             runtime=self.get_runtime(),
             restaurant_runtime=self.restaurant_runtime,
