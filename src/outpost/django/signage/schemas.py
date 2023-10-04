@@ -275,6 +275,7 @@ Page = Annotated[
 
 
 class PlaylistMessage(BaseModel):
+    id: int
     pages: list[Page]
 
 
