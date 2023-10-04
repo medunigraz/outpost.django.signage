@@ -115,7 +115,9 @@ class DisplayConsumer(JsonWebsocketConsumer):
 
     def power_on(self, *args):
         self.send_json(
-            schemas.PowerMessage(power=True, scale=self.display.resolution.scale).dict()
+            schemas.PowerMessage(
+                power=True, scale=self.display.resolution.scale
+            ).dict()
         )
 
     def power_off(self, *args):

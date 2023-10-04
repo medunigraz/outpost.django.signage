@@ -13,10 +13,6 @@ class SignageAppConf(AppConf):
     SCHEDULER_CHANNEL = "signage-scheduler"
     TYPO3_NEWS_RETROSPECTIVE = timedelta(days=365)
     TYPO3_EVENT_RETROSPECTIVE = timedelta(days=31)
-    PDF_RENDER_MIN_WIDTH = 3840
-    PDF_RENDER_MIN_HEIGHT = 2160
-    PDF_RENDER_FORMAT = "webp"
-    PDF_RENDER_QUALITY = 70
 
     class Meta:
         prefix = "signage"
