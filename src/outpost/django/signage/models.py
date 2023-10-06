@@ -357,7 +357,7 @@ class PDFPage(Page):
                         optimize=True,
                         quality=settings.SIGNAGE_PDF_RENDER_QUALITY,
                     )
-                    p = PDFPageRender.objects.create(
+                    PDFPageRender.objects.create(
                         pdf=self, page=page.number, image=c
                     )
                     c.close()
