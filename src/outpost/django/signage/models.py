@@ -11,7 +11,7 @@ from datetime import (
 from hashlib import sha256
 
 import asyncssh
-import fitz
+import reversion
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 from ckeditor_uploader.fields import RichTextUploadingField
@@ -27,7 +27,6 @@ from django.contrib.postgres.fields import (
     JSONField,
 )
 from django.core.exceptions import ValidationError
-from django.core.files.base import ContentFile
 from django.core.validators import URLValidator
 from django.db.models import Q
 from django.urls import reverse
@@ -174,6 +173,7 @@ class WeatherPage(Page):
     def get_message(self):
         return schemas.WeatherPageSchema(
             page=self.page,
+            id=self.pk,
             name=self.name,
             runtime=self.get_runtime(),
             forecast=self.location.forecast,
@@ -192,6 +192,7 @@ class HTMLPage(Page):
     def get_message(self):
         return schemas.HTMLPageSchema(
             page=self.page,
+            id=self.pk,
             name=self.name,
             runtime=self.get_runtime(),
             content=self.content,
@@ -208,6 +209,7 @@ class RichTextPage(Page):
     def get_message(self):
         return schemas.RichTextPageSchema(
             page=self.page,
+            id=self.pk,
             name=self.name,
             runtime=self.get_runtime(),
             content=self.content,
@@ -235,6 +237,7 @@ class ImagePage(Page):
     def get_message(self):
         return schemas.ImagePageSchema(
             page=self.page,
+            id=self.pk,
             name=self.name,
             runtime=self.get_runtime(),
             url=self.image.url,
@@ -285,6 +288,7 @@ class VideoPage(Page):
     def get_message(self):
         return schemas.VideoPageSchema(
             page=self.page,
+            id=self.pk,
             name=self.name,
             runtime=self.get_runtime(),
             url=self.video.url,
@@ -303,7 +307,9 @@ class WebsitePage(Page):
 
     def get_message(self):
         return schemas.WebsitePageSchema(
-            page=self.page, name=self.name, runtime=self.get_runtime(), url=self.url
+            page=self.page,
+            id=self.pk,
+            name=self.name, runtime=self.get_runtime(), url=self.url
         )
 
 
@@ -318,6 +324,7 @@ class PDFPage(Page):
         ),
         help_text=_("PDF file to be used as a fullscreen page."),
     )
+    pages = models.PositiveSmallIntegerField(editable=False)
     page_runtime = models.DurationField(blank=True, null=True)
 
     class Meta:
@@ -327,63 +334,27 @@ class PDFPage(Page):
     def __str__(self):
         return f"{self.name} ({self.pdf.name})"
 
-    def post_save(self, *args, **kwargs):
-        PDFPageRender.objects.filter(pdf=self).delete()
-        with self.pdf.open() as pdf:
-            with fitz.Document(stream=pdf.read(), filetype="PDF") as doc:
-                for page in doc.pages():
-                    print(f"Rendering page {page.number} for {self.pk}")
-                    zoom = max(
-                        (settings.SIGNAGE_PDF_RENDER_MIN_HEIGHT / page.rect.height),
-                        (settings.SIGNAGE_PDF_RENDER_MIN_WIDTH / page.rect.width),
-                    )
-                    pix = page.getPixmap(
-                        matrix=fitz.Matrix(zoom, zoom) if zoom > 1 else None
-                    )
-                    c = ContentFile(
-                        b"",
-                        name=f"pdf-{self.pk}-page-{page.number}.{settings.SIGNAGE_PDF_RENDER_FORMAT}",
-                    )
-                    pix.pillowWrite(
-                        c,
-                        format=settings.SIGNAGE_PDF_RENDER_FORMAT,
-                        optimize=True,
-                        quality=settings.SIGNAGE_PDF_RENDER_QUALITY,
-                    )
-                    p = PDFPageRender.objects.create(
-                        pdf=self, page=page.number, image=c
-                    )
-                    c.close()
+    def pre_save(self, *args, **kwargs):
+        doc = Poppler.Document.loadFromData(self.pdf.open().read())
+        self.pages = doc.numPages()
 
     def get_runtime(self):
         if self.page_runtime:
-            return self.pdfpagerender_set.all().count() * self.page_runtime
+            return self.pages * self.page_runtime
         return super().get_runtime()
 
     def get_message(self):
-        pages = self.pdfpagerender_set.all().order_by("page")
         return schemas.PDFPageSchema(
             page=self.page,
+            id=self.pk,
             name=self.name,
             runtime=self.get_runtime(),
             url=self.pdf.url,
-            pages=[p.image.url for p in pages],
+            pages=self.pages,
             page_runtime=int(self.page_runtime.total_seconds())
             if self.page_runtime
-            else self.get_runtime() / pages.count(),
+            else self.get_runtime() / self.pages,
         )
-
-
-@signal_connect
-class PDFPageRender(models.Model):
-    pdf = models.ForeignKey(PDFPage, on_delete=models.CASCADE)
-    page = models.PositiveIntegerField()
-    image = models.ImageField(
-        upload_to=Uuid4Upload,
-    )
-
-    def pre_delete(self, *args, **kwargs):
-        self.image.delete()
 
 
 class CampusOnlineEventPage(Page):
@@ -401,6 +372,7 @@ class CampusOnlineEventPage(Page):
     def get_message(self):
         return schemas.CampusOnlineEventPageSchema(
             page=self.page,
+            id=self.pk,
             name=self.name,
             runtime=self.get_runtime(),
             items=[
@@ -432,6 +404,7 @@ class LiveChannelPage(Page):
     def get_message(self):
         return schemas.LiveChannelPageSchema(
             page=self.page,
+            id=self.pk,
             name=self.name,
             runtime=self.get_runtime(),
             url=reverse("signage:page-livechannel", kwargs={"pk": self.pk}),
@@ -450,6 +423,7 @@ class TYPO3NewsPage(Page):
     def get_message(self):
         return schemas.TYPO3NewsPageSchema(
             page=self.page,
+            id=self.pk,
             name=self.name,
             runtime=self.get_runtime(),
             title=self.news.title,
@@ -484,6 +458,7 @@ class TYPO3EventPage(Page):
     def get_message(self):
         return schemas.TYPO3EventPageSchema(
             page=self.page,
+            id=self.pk,
             name=self.name,
             runtime=self.get_runtime(),
             title=self.event.title,
@@ -529,6 +504,7 @@ class RestaurantPage(Page):
         today = timezone.now().today()
         return schemas.RestaurantPageSchema(
             page=self.page,
+            id=self.pk,
             name=self.name,
             runtime=self.get_runtime(),
             restaurant_runtime=self.restaurant_runtime,
