@@ -533,7 +533,7 @@ class RestaurantPage(Page):
         verbose_name_plural = _("Restaurant pages")
 
     def get_runtime(self):
-        if self.restaurant_runtime:
+        if self.restaurants.exists() and self.restaurant_runtime:
             return self.restaurants.count() * self.restaurant_runtime
         return self.runtime
 
