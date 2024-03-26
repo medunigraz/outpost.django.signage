@@ -1,12 +1,8 @@
 import json
 from base64 import b64decode
-from datetime import timedelta
 
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from asgiref.sync import async_to_sync
-from channels.consumer import AsyncConsumer
 from channels.generic.websocket import JsonWebsocketConsumer
-from django.core.files.base import ContentFile
 from django.core.serializers.json import DjangoJSONEncoder
 from django.utils import timezone
 

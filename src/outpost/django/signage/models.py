@@ -16,12 +16,7 @@ from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 from ckeditor_uploader.fields import RichTextUploadingField
 from django.conf import settings
-from django.contrib.contenttypes.models import ContentType
 from django.contrib.gis.db import models
-from django.contrib.gis.geos import (
-    LineString,
-    Point,
-)
 from django.contrib.postgres.fields import (
     DateTimeRangeField,
     JSONField,
@@ -29,7 +24,6 @@ from django.contrib.postgres.fields import (
 from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
 from django.core.validators import URLValidator
-from django.db.models import Q
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
@@ -45,16 +39,13 @@ from outpost.django.base.validators import (
 from outpost.django.campusonline.models import Event as CampusOnlineEvent
 from outpost.django.weather.models import Location as WeatherLocation
 from polymorphic.models import PolymorphicModel
-from popplerqt5 import Poppler
 from recurrence.fields import RecurrenceField
 from shortuuid.django_fields import ShortUUIDField
 
 from . import schemas
 from .validators import (
-    MediaAudioValidator,
     MediaContainerValidator,
     MediaVideoValidator,
-    PDFOrientation,
     PDFValidator,
 )
 
@@ -310,7 +301,9 @@ class WebsitePage(Page):
         return schemas.WebsitePageSchema(
             page=self.page,
             id=self.pk,
-            name=self.name, runtime=self.get_runtime(), url=self.url
+            name=self.name,
+            runtime=self.get_runtime(),
+            url=self.url,
         )
 
 
@@ -357,9 +350,7 @@ class PDFPage(Page):
                         optimize=True,
                         quality=settings.SIGNAGE_PDF_RENDER_QUALITY,
                     )
-                    PDFPageRender.objects.create(
-                        pdf=self, page=page.number, image=c
-                    )
+                    PDFPageRender.objects.create(pdf=self, page=page.number, image=c)
                     c.close()
 
     def get_runtime(self):
@@ -579,7 +570,7 @@ class Playlist(models.Model):
             id=self.pk,
             pages=[
                 p.page.get_message() for p in self.playlistitem_set.filter(enabled=True)
-            ]
+            ],
         )
 
 

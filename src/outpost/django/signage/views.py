@@ -14,10 +14,7 @@ from django.utils.translation import gettext as _
 from django.views import View
 from django.views.generic import DetailView
 from django_ical.views import ICalFeed
-from outpost.django.video.models import (
-    LiveEvent,
-    LiveViewer,
-)
+from outpost.django.video.models import LiveEvent
 from pydantic.main import ModelMetaclass
 
 from . import (
