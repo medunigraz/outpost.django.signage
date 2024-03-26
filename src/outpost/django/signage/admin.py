@@ -56,7 +56,7 @@ class DisplayAdmin(
         "playlist_state",
     )
     list_filter = ("schedule", "power", "resolution", "enabled", "online")
-    readonly_fields = ("pk", "config", "screen")
+    readonly_fields = ("pk", "config", "screenshot")
 
     def get_form(self, request, obj=None, **kwargs):
         form = super().get_form(request, obj, **kwargs)
@@ -97,6 +97,16 @@ class DisplayAdmin(
         return obj.schedule.get_active_playlist(timezone.now())
 
     playlist_state.short_description = _("Playlist state")
+
+    def screenshot(self, obj):
+        if obj.screenshot:
+            return format_html(
+                "<img src='{}'/>",
+                reverse("signage:display-screenshot", kwargs={"pk": obj.pk}),
+            )
+        return "-"
+
+    screenshot.short_description = _("Screenshot")
 
 
 class PageChildAdmin(

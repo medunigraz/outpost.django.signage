@@ -1,8 +1,12 @@
 import logging
 from dataclasses import dataclass
 
-from braces.views import JSONResponseMixin
+from braces.views import (
+    JSONResponseMixin,
+    LoginRequiredMixin,
+)
 from django.conf import settings
+from django.contrib.staticfiles import finders
 from django.http import (
     HttpResponse,
     HttpResponseBadRequest,
@@ -15,6 +19,7 @@ from django.views import View
 from django.views.generic import DetailView
 from django_ical.views import ICalFeed
 from outpost.django.video.models import LiveEvent
+from PIL import Image
 from pydantic.main import ModelMetaclass
 
 from . import (
@@ -95,3 +100,15 @@ class LiveChannelPageView(JSONResponseMixin, DetailView):
         }
 
         return self.render_json_response(data)
+
+
+class DisplayScreenshotView(LoginRequiredMixin, DetailView):
+    model = models.Display
+
+    def get(self, request, pk, *args, **kwargs):
+        screen = self.get_object().screenshot
+        if not screen:
+            screen = Image.open(finders.find("signage/placeholder/screenshot.webp"))
+        response = HttpResponse(content_type=screen.get_format_mimetype())
+        screen.save(response, format=screen.format)
+        return response

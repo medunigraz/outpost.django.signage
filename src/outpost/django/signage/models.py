@@ -1,7 +1,10 @@
 import json
 import logging
 import subprocess
-from base64 import b64encode
+from base64 import (
+    b64decode,
+    b64encode,
+)
 from dataclasses import dataclass
 from datetime import (
     datetime,
@@ -9,6 +12,7 @@ from datetime import (
     timedelta,
 )
 from hashlib import sha256
+from io import BytesIO
 
 import asyncssh
 import fitz
@@ -21,6 +25,7 @@ from django.contrib.postgres.fields import (
     DateTimeRangeField,
     JSONField,
 )
+from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
 from django.core.validators import URLValidator
@@ -32,12 +37,10 @@ from ordered_model.models import OrderedModel
 from outpost.django.base.decorators import signal_connect
 from outpost.django.base.models import NetworkedDeviceMixin
 from outpost.django.base.utils import Uuid4Upload
-from outpost.django.base.validators import (
-    FileValidator,
-    ImageValidator,
-)
+from outpost.django.base.validators import ImageValidator
 from outpost.django.campusonline.models import Event as CampusOnlineEvent
 from outpost.django.weather.models import Location as WeatherLocation
+from PIL import Image
 from polymorphic.models import PolymorphicModel
 from recurrence.fields import RecurrenceField
 from shortuuid.django_fields import ShortUUIDField
@@ -88,11 +91,6 @@ class Display(NetworkedDeviceMixin, models.Model):
     resolution = models.ForeignKey(Resolution, on_delete=models.CASCADE)
     dpi = models.PositiveIntegerField(null=True, blank=True)
     connected = models.DateTimeField(null=True, editable=False)
-    screen = models.ImageField(
-        upload_to=Uuid4Upload,
-        null=True,
-        validators=(FileValidator(mimetypes=["image/png"]),),
-    )
     config = JSONField(null=True)
 
     def __str__(self):
@@ -115,6 +113,33 @@ class Display(NetworkedDeviceMixin, models.Model):
         pk = asyncssh.generate_private_key("ssh-rsa", comment=self.name)
         # For compatibility with older SSH implementations
         self.key = pk.export_private_key("pkcs1-pem")
+
+    @property
+    def screenshot(self):
+        if (screen := cache.get(settings.SIGNAGE_DISPLAY_SCREEN_KEY.format(self=self))):
+            return Image.open(
+                BytesIO(
+                    b64decode(
+                        screen
+                    )
+                )
+            )
+
+    @screenshot.setter
+    def screenshot(self, value):
+        if not isinstance(value, Image.Image):
+            raise ValueError(f"Value {value} is not of type {Image.Image}")
+        buffered = BytesIO()
+        value.save(buffered)
+        cache.set(
+            settings.SIGNAGE_DISPLAY_SCREEN_KEY.format(self=self),
+            b64encode(buffered.getvalue()),
+            settings.SIGNAGE_DISPLAY_SCREEN_LIFETIME,
+        )
+
+    @screenshot.deleter
+    def screenshot(self):
+        cache.delete(settings.SIGNAGE_DISPLAY_SCREEN_KEY.format(self=self))
 
 
 class Page(TimeStampedModel, PolymorphicModel):

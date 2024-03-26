@@ -1,15 +1,20 @@
 import json
+import logging
 from base64 import b64decode
+from io import BytesIO
 
 from asgiref.sync import async_to_sync
 from channels.generic.websocket import JsonWebsocketConsumer
 from django.core.serializers.json import DjangoJSONEncoder
 from django.utils import timezone
+from PIL import Image
 
 from . import (
     models,
     schemas,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class FrontendConsumer(JsonWebsocketConsumer):
@@ -49,7 +54,7 @@ class FrontendConsumer(JsonWebsocketConsumer):
                 self.display.schedule.channel, self.channel_name
             )
         self.display.connected = None
-        self.display.save()
+        self.display.save(update_fields=["connected"])
 
     def playlist_update(self, message):
         try:
@@ -102,12 +107,13 @@ class DisplayConsumer(JsonWebsocketConsumer):
 
     def receive_json(self, content):
         self.display.config = content.get("config")
-        screen = content.get("screen")
-        if screen:
-            self.display.screen = ContentFile(
-                b64decode(screen), f"screen-{self.display.pk}.png"
-            )
-        self.display.save()
+        if (screen := content.get("screen")):
+            try:
+                self.display.screen = Image.open(BytesIO(b64decode(screen)))
+            except Exception:
+                logger.warn(f"Could not decode screenshot from display {self.display}")
+                del self.display.screen
+        self.display.save(update_fields=["config"])
 
     def power_on(self, *args):
         self.send_json(
