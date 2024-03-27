@@ -134,7 +134,7 @@ class Display(NetworkedDeviceMixin, models.Model):
         cache.set(
             settings.SIGNAGE_DISPLAY_SCREEN_KEY.format(self=self),
             b64encode(buffered.getvalue()),
-            settings.SIGNAGE_DISPLAY_SCREEN_LIFETIME,
+            settings.SIGNAGE_DISPLAY_SCREEN_LIFETIME.total_seconds(),
         )
 
     @screenshot.deleter
