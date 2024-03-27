@@ -109,10 +109,10 @@ class DisplayConsumer(JsonWebsocketConsumer):
         self.display.config = content.get("config")
         if (screen := content.get("screen")):
             try:
-                self.display.screen = Image.open(BytesIO(b64decode(screen)))
+                self.display.screenshot = Image.open(BytesIO(b64decode(screen)))
             except Exception:
                 logger.warn(f"Could not decode screenshot from display {self.display}")
-                del self.display.screen
+                del self.display.screenshot
         self.display.save(update_fields=["config"])
 
     def power_on(self, *args):
