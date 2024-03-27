@@ -101,7 +101,7 @@ class DisplayAdmin(
     def screenshot(self, obj):
         if obj.screenshot:
             return format_html(
-                "<img src='{}'/>",
+                """<img style="max-width: 50%" class="submit-row" src="{}"/>""",
                 reverse("signage:display-screenshot", kwargs={"pk": obj.pk}),
             )
         return "-"
