@@ -130,7 +130,7 @@ class Display(NetworkedDeviceMixin, models.Model):
         if not isinstance(value, Image.Image):
             raise ValueError(f"Value {value} is not of type {Image.Image}")
         buffered = BytesIO()
-        value.save(buffered)
+        value.save(buffered, format=value.format)
         cache.set(
             settings.SIGNAGE_DISPLAY_SCREEN_KEY.format(self=self),
             b64encode(buffered.getvalue()),
