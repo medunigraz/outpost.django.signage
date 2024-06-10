@@ -117,13 +117,7 @@ class Display(NetworkedDeviceMixin, models.Model):
     @property
     def screenshot(self):
         if (screen := cache.get(settings.SIGNAGE_DISPLAY_SCREEN_KEY.format(self=self))):
-            return Image.open(
-                BytesIO(
-                    b64decode(
-                        screen
-                    )
-                )
-            )
+            return Image.open(BytesIO(b64decode(screen)))
 
     @screenshot.setter
     def screenshot(self, value):
@@ -338,7 +332,7 @@ class PDFPage(Page):
         upload_to=Uuid4Upload,
         validators=(
             PDFValidator(
-                pages=range(1, 20),
+                pages=range(1, 40),
             ),
         ),
         help_text=_("PDF file to be used as a fullscreen page."),

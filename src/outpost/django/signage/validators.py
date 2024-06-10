@@ -47,17 +47,17 @@ class PDFValidator(object):
                         ).format(found=doc.numPages(), allowed=self._pages)
                     )
             if isinstance(self._pages, range):
-                if not (self._pages.start <= doc.numPages() <= self._pages.stop):
-                    if self._pages.start <= doc.numPages():
+                if not (self._pages.start < doc.numPages() < self._pages.stop):
+                    if self._pages.start > doc.numPages():
                         raise ValidationError(
                             _(
-                                "Document contains less pages than allowed ({ found } < { allowed })"
+                                "Document contains less pages than allowed ({found} < {allowed})"
                             ).format(found=doc.numPages(), allowed=self._pages.start)
                         )
-                    if doc.numPages() >= self._pages.stop:
+                    if self._pages.stop < doc.numPages():
                         raise ValidationError(
                             _(
-                                "Document contains more pages than allowed ({ found } < { allowed })"
+                                "Document contains more pages than allowed ({found} > {allowed})"
                             ).format(found=doc.numPages(), allowed=self._pages.stop)
                         )
 
