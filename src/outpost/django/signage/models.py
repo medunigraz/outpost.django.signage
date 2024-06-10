@@ -332,7 +332,7 @@ class PDFPage(Page):
         upload_to=Uuid4Upload,
         validators=(
             PDFValidator(
-                pages=range(1, 20),
+                pages=range(1, 40),
             ),
         ),
         help_text=_("PDF file to be used as a fullscreen page."),
