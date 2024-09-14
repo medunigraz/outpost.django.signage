@@ -15,7 +15,8 @@ from ordered_model.admin import (
 from outpost.django.base.guardian import (
     GuardedModelAdminFilterMixin,
     GuardedModelAdminMixin,
-    GuardedModelAdminObjectMixin,
+    GuardedModelAdminPermissionMixin,
+    GuardedModelAdminSaveMixin,
 )
 from polymorphic.admin import (
     PolymorphicChildModelAdmin,
@@ -38,7 +39,8 @@ class ResolutionAdmin(admin.ModelAdmin):
 @admin.register(models.Display)
 class DisplayAdmin(
     GuardedModelAdminFilterMixin,
-    GuardedModelAdminObjectMixin,
+    GuardedModelAdminPermissionMixin,
+    GuardedModelAdminSaveMixin,
     GuardedModelAdminMixin,
     admin.ModelAdmin,
 ):
@@ -111,7 +113,8 @@ class DisplayAdmin(
 
 class PageChildAdmin(
     GuardedModelAdminFilterMixin,
-    GuardedModelAdminObjectMixin,
+    GuardedModelAdminSaveMixin,
+    GuardedModelAdminPermissionMixin,
     GuardedModelAdminMixin,
     PolymorphicChildModelAdmin,
 ):
@@ -121,7 +124,7 @@ class PageChildAdmin(
 @admin.register(models.Page)
 class PageParentAdmin(
     GuardedModelAdminFilterMixin,
-    GuardedModelAdminObjectMixin,
+    GuardedModelAdminSaveMixin,
     PolymorphicParentModelAdmin,
 ):
     base_model = models.Page
@@ -242,7 +245,7 @@ class RestaurantPageAdmin(PageChildAdmin):
         return form
 
 
-class PlaylistItemInline(OrderedTabularInline):
+class PlaylistItemInline(GuardedModelAdminPermissionMixin, OrderedTabularInline):
     model = models.PlaylistItem
     fields = (
         "page",
@@ -270,14 +273,19 @@ class PlaylistItemInline(OrderedTabularInline):
 class PlaylistAdmin(
     OrderedInlineModelAdminMixin,
     GuardedModelAdminFilterMixin,
-    GuardedModelAdminObjectMixin,
+    GuardedModelAdminPermissionMixin,
+    GuardedModelAdminSaveMixin,
     GuardedModelAdminMixin,
     admin.ModelAdmin,
 ):
     inlines = (PlaylistItemInline,)
+    object_permissions = ("view", "change", "delete")
+    related_object_permissions = {
+        models.PlaylistItem: ("view", "change", "delete"),
+    }
 
 
-class ScheduleItemInline(OrderedTabularInline):
+class ScheduleItemInline(GuardedModelAdminPermissionMixin, OrderedTabularInline):
     model = models.ScheduleItem
     extra = 1
     form = forms.ScheduleItemAdminForm
@@ -297,13 +305,18 @@ class ScheduleItemInline(OrderedTabularInline):
 class ScheduleAdmin(
     OrderedInlineModelAdminMixin,
     GuardedModelAdminFilterMixin,
-    GuardedModelAdminObjectMixin,
+    GuardedModelAdminPermissionMixin,
+    GuardedModelAdminSaveMixin,
     GuardedModelAdminMixin,
     admin.ModelAdmin,
 ):
     inlines = (ScheduleItemInline,)
     list_display = ("name", "default", "ical")
     actions = ("publish",)
+    object_permissions = ("view", "change", "delete")
+    related_object_permissions = {
+        models.ScheduleItem: ("view", "change", "delete"),
+    }
 
     def get_form(self, request, obj=None, **kwargs):
         form = super().get_form(request, obj, **kwargs)
@@ -328,7 +341,7 @@ class ScheduleAdmin(
     publish.short_description = _("Publish schedule to connected displays")
 
 
-class PowerItemInline(OrderedTabularInline):
+class PowerItemInline(GuardedModelAdminPermissionMixin, OrderedTabularInline):
     model = models.PowerItem
     extra = 1
     formfield_overrides = {
@@ -337,9 +350,20 @@ class PowerItemInline(OrderedTabularInline):
 
 
 @admin.register(models.Power)
-class PowerAdmin(OrderedInlineModelAdminMixin, admin.ModelAdmin):
+class PowerAdmin(
+    OrderedInlineModelAdminMixin,
+    GuardedModelAdminFilterMixin,
+    GuardedModelAdminPermissionMixin,
+    GuardedModelAdminSaveMixin,
+    GuardedModelAdminMixin,
+    admin.ModelAdmin,
+):
     inlines = (PowerItemInline,)
     actions = ("publish",)
+    object_permissions = ("view", "change", "delete")
+    related_object_permissions = {
+        models.PowerItem: ("view", "change", "delete"),
+    }
 
     def save_related(self, request, form, formsets, change):
         super().save_related(request, form, formsets, change)
