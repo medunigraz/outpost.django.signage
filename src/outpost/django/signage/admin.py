@@ -119,11 +119,13 @@ class PageChildAdmin(
     PolymorphicChildModelAdmin,
 ):
     base_model = models.Page
+    object_permissions = ("view", "change", "delete")
 
 
 @admin.register(models.Page)
 class PageParentAdmin(
     GuardedModelAdminFilterMixin,
+    GuardedModelAdminPermissionMixin,
     GuardedModelAdminSaveMixin,
     PolymorphicParentModelAdmin,
 ):
