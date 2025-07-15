@@ -17,7 +17,9 @@ class SignageAppConf(AppConf):
     PDF_RENDER_MIN_HEIGHT = 2160
     PDF_RENDER_FORMAT = "webp"
     PDF_RENDER_QUALITY = 70
-    DISPLAY_SCREEN_KEY = "{self.__class__.__module__}.{self.__class__.__name__}:screen:{self.pk}"
+    DISPLAY_SCREEN_KEY = (
+        "{self.__class__.__module__}.{self.__class__.__name__}:screen:{self.pk}"
+    )
     DISPLAY_SCREEN_LIFETIME = timedelta(minutes=5)
     DISPLAY_SCREEN_EMPTY = "signage/screenshot/empty.png"
 
