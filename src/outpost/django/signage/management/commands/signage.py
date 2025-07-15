@@ -80,22 +80,20 @@ class SignageServer(StatelessServer):
             logger.info(f"No more events for {schedule} after {after}")
             if schedule.pk in self.schedules:
                 del self.schedules[schedule.pk]
-            return
-        logger.debug(f"Next update for schedule {schedule} at {trigger}")
+        else:
+            logger.debug(f"Next update for schedule {schedule} at {trigger}")
+            self.schedules[schedule.pk] = self.scheduler.add_job(
+                self.schedule,
+                "date",
+                run_date=trigger.astimezone(timezone.utc),
+                kwargs={"schedule": schedule, "after": trigger},
+            )
         p = schedule.get_active_playlist(after)
         logger.debug(f"Starting playlist {p} from {schedule}")
-        self.schedules[schedule.pk] = self.scheduler.add_job(
-            self.schedule,
-            "date",
-            run_date=trigger.astimezone(timezone.utc),
-            kwargs={"schedule": schedule, "after": trigger},
-        )
         return p
 
     async def schedule(self, schedule, after):
         p = await database_sync_to_async(self.sync_schedule)(schedule, after)
-        if p is None:
-            return
         await self.channel_layer.group_send(
             schedule.channel, {"type": "playlist.update", "playlist": p.pk}
         )
@@ -124,15 +122,15 @@ class SignageServer(StatelessServer):
         now = timezone.localtime()
         schedules = await database_sync_to_async(get_model_objects)(models.Schedule)
         for s in schedules:
-            p = await database_sync_to_async(s.get_active_playlist)(now)
+            pl = await database_sync_to_async(s.get_active_playlist)(now)
             await self.channel_layer.group_send(
-                s.channel, {"type": "playlist.update", "playlist": p.pk}
+                s.channel, {"type": "playlist.update", "playlist": pl.pk}
             )
         powers = await database_sync_to_async(get_model_objects)(models.Power)
         for p in powers:
             state = await database_sync_to_async(p.get_active_state)(now)
             await self.channel_layer.group_send(
-                s.channel,
+                p.channel,
                 {"type": "power.on" if state else "power.off"},
             )
         while True:
