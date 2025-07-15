@@ -1,5 +1,6 @@
 import json
 import logging
+import shutil
 import subprocess
 from base64 import (
     b64decode,
@@ -283,7 +284,7 @@ class VideoPage(Page):
     def pre_save(self, *args, **kwargs):
         proc = subprocess.run(
             [
-                "ffprobe",
+                shutil.which("ffprobe"),
                 "-print_format",
                 "json",
                 "-show_format",

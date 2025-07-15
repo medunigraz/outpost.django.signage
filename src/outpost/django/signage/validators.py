@@ -1,4 +1,5 @@
 import json
+import shutil
 import subprocess
 from collections.abc import Iterable
 from enum import Enum
@@ -79,7 +80,7 @@ class MediaAbstractValidator(object):
     def probe(self, media):
         proc = subprocess.run(
             [
-                "ffprobe",
+                shutil.which("ffprobe"),
                 "-print_format",
                 "json",
                 "-show_format",
