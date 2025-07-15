@@ -158,6 +158,7 @@ class SignageServer(StatelessServer):
             logger.error("Unknown schedule {pk}")
             return
         if schedule.pk in self.schedules:
+            logger.debug(f"Removing schedule {schedule.pk} from rooster")
             self.schedules.get(schedule.pk).remove()
         await self.schedule(schedule, timezone.localtime())
 

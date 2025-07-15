@@ -735,6 +735,9 @@ class Schedule(models.Model):
 
     def publish(self):
         channel_layer = get_channel_layer()
+        logger.debug(
+            f"Publishing schedule {self.pk} to channel {settings.SIGNAGE_SCHEDULER_CHANNEL}"
+        )
         async_to_sync(channel_layer.send)(
             settings.SIGNAGE_SCHEDULER_CHANNEL,
             {"type": "schedule", "schedule": self.pk},

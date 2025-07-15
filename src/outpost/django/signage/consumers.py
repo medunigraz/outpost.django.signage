@@ -19,23 +19,30 @@ logger = logging.getLogger(__name__)
 
 class FrontendConsumer(JsonWebsocketConsumer):
     def connect(self):
+        pk = self.scope["url_route"]["kwargs"]["pk"]
         try:
-            self.display = models.Display.objects.get(
-                pk=self.scope["url_route"]["kwargs"]["pk"]
-            )
+            self.display = models.Display.objects.get(pk=pk)
         except models.Display.DoesNotExist:
+            logger.warning(f"Connection for unknown display {pk}, closing websocket")
             self.close()
             return
         if not self.display.enabled:
+            logger.info(
+                f"Connection for disabled display {self.display}, closing websocket"
+            )
             self.close()
             return
 
         self.display.connected = timezone.now()
+        logger.info(f"Connection for display {self.display}, accepting websocket")
         self.display.save()
 
         self.accept()
 
         if self.display.schedule:
+            logger.debug(
+                f"Display {self.display} joins group {self.display.schedule.channel}"
+            )
             async_to_sync(self.channel_layer.group_add)(
                 self.display.schedule.channel, self.channel_name
             )
@@ -46,17 +53,25 @@ class FrontendConsumer(JsonWebsocketConsumer):
         )
 
     def receive(self, text_data=None, bytes_data=None, **kwargs):
-        return
+        if text_data:
+            logger.warning(f"Display {self.display} received text message: {text_data}")
+        if bytes_data:
+            logger.warning(f"Display {self.display} received raw message: {bytes_data}")
 
     def disconnect(self, close_code):
         if self.display.schedule:
+            logger.debug(
+                f"Display {self.display} leaves group {self.display.schedule.channel}"
+            )
             async_to_sync(self.channel_layer.group_discard)(
                 self.display.schedule.channel, self.channel_name
             )
+        logger.info(f"Connection for display {self.display} closed")
         self.display.connected = None
         self.display.save(update_fields=["connected"])
 
     def playlist_update(self, message):
+        logger.debug(f"Sending update for display {self.display}: {message}")
         try:
             playlist = models.Playlist.objects.get(pk=message.get("playlist"))
         except models.Playlist.DoesNotExist:
