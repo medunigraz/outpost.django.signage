@@ -1,4 +1,3 @@
-import asyncio
 import inspect
 import logging
 
@@ -7,10 +6,7 @@ from asgiref.server import StatelessServer
 from channels.db import database_sync_to_async
 from channels.layers import get_channel_layer
 from channels.routing import get_default_application
-from django.core.management.base import (
-    BaseCommand,
-    CommandError,
-)
+from django.core.management.base import BaseCommand
 from django.utils import timezone
 
 from ... import models
