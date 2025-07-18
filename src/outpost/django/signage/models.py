@@ -699,36 +699,39 @@ class Schedule(models.Model):
             range__endswith__gt=after
         ).order_by("-start")
         today = tz.localize(timezone.datetime.combine(after.date(), time()))
-        candidates = [
-            TriggerCandidate(
-                tz.localize(timezone.datetime.combine(r.date(), s.start)),
-                tz.localize(timezone.datetime.combine(r.date(), s.stop)),
+        candidates = list(
+            filter(
+                lambda c: c.end >= after,
+                [
+                    TriggerCandidate(
+                        tz.localize(timezone.datetime.combine(r.date(), s.start)),
+                        tz.localize(timezone.datetime.combine(r.date(), s.stop)),
+                    )
+                    for s, r in (
+                        (
+                            s,
+                            s.recurrences.after(
+                                today,
+                                inc=s.stop > after.time(),
+                                dtstart=today,
+                                dtend=s.range.upper,
+                            ),
+                        )
+                        for s in scheduleitems
+                        if s.recurrences.after(
+                            today,
+                            inc=s.stop > after.time(),
+                            dtstart=today,
+                            dtend=s.range.upper,
+                        )
+                    )
+                ],
             )
-            for s, r in (
-                (
-                    s,
-                    s.recurrences.after(
-                        today,
-                        inc=s.stop > after.time(),
-                        dtstart=today,
-                        dtend=s.range.upper,
-                    ),
-                )
-                for s in scheduleitems
-                if s.recurrences.after(
-                    today,
-                    inc=s.stop > after.time(),
-                    dtstart=today,
-                    dtend=s.range.upper,
-                )
-            )
-        ]
+        )
         if not candidates:
             logger.debug("There are no future scheduled items, ")
             return None
-        candidate = min(
-            filter(lambda c: c.end >= after, candidates), key=lambda c: c.start
-        )
+        candidate = min(candidates, key=lambda c: c.start)
         if candidate.start <= after and candidate.end >= after:
             return candidate.end
         else:
