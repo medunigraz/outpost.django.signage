@@ -20,7 +20,6 @@ import fitz
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 from ckeditor_uploader.fields import RichTextUploadingField
-from django.conf import settings
 from django.contrib.gis.db import models
 from django.contrib.postgres.fields import (
     DateTimeRangeField,
@@ -47,6 +46,7 @@ from recurrence.fields import RecurrenceField
 from shortuuid.django_fields import ShortUUIDField
 
 from . import schemas
+from .conf import settings
 from .validators import (
     MediaContainerValidator,
     MediaVideoValidator,
@@ -333,7 +333,7 @@ class PDFPage(Page):
         upload_to=Uuid4Upload,
         validators=(
             PDFValidator(
-                pages=range(1, 40),
+                pages=range(1, settings.SIGNAGE_PDF_PAGES_MAX),
             ),
         ),
         help_text=_("PDF file to be used as a fullscreen page."),

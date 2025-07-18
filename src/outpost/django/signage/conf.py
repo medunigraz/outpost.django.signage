@@ -17,6 +17,7 @@ class SignageAppConf(AppConf):
     PDF_RENDER_MIN_HEIGHT = 2160
     PDF_RENDER_FORMAT = "webp"
     PDF_RENDER_QUALITY = 70
+    PDF_PAGES_MAX = 50
     DISPLAY_SCREEN_KEY = (
         "{self.__class__.__module__}.{self.__class__.__name__}:screen:{self.pk}"
     )
