@@ -23,7 +23,6 @@ from ckeditor_uploader.fields import RichTextUploadingField
 from django.contrib.gis.db import models
 from django.contrib.postgres.fields import (
     DateTimeRangeField,
-    JSONField,
 )
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
@@ -92,7 +91,7 @@ class Display(NetworkedDeviceMixin, models.Model):
     resolution = models.ForeignKey(Resolution, on_delete=models.CASCADE)
     dpi = models.PositiveIntegerField(null=True, blank=True)
     connected = models.DateTimeField(null=True, editable=False)
-    config = JSONField(null=True)
+    config = models.JSONField(null=True)
 
     def __str__(self):
         return f"{self.name} ({self.hostname})"
@@ -117,7 +116,7 @@ class Display(NetworkedDeviceMixin, models.Model):
 
     @property
     def screenshot(self):
-        if (screen := cache.get(settings.SIGNAGE_DISPLAY_SCREEN_KEY.format(self=self))):
+        if screen := cache.get(settings.SIGNAGE_DISPLAY_SCREEN_KEY.format(self=self)):
             return Image.open(BytesIO(b64decode(screen)))
 
     @screenshot.setter
@@ -178,7 +177,7 @@ class Page(TimeStampedModel, PolymorphicModel):
 class WeatherPage(Page):
     location = models.ForeignKey(WeatherLocation, on_delete=models.CASCADE)
 
-    class Meta:
+    class Meta(Page.Meta):
         verbose_name = _("Weather page")
         verbose_name_plural = _("Weather pages")
 
@@ -197,7 +196,7 @@ class HTMLPage(Page):
         help_text=_("Raw HTML can be used to construct more in-depth pages."),
     )
 
-    class Meta:
+    class Meta(Page.Meta):
         verbose_name = _("HTML page")
         verbose_name_plural = _("HTML pages")
 
@@ -214,7 +213,7 @@ class HTMLPage(Page):
 class RichTextPage(Page):
     content = RichTextUploadingField()
 
-    class Meta:
+    class Meta(Page.Meta):
         verbose_name = _("Rich text page")
         verbose_name_plural = _("Rich text pages")
 
@@ -242,7 +241,7 @@ class ImagePage(Page):
         help_text=_("Image to be used as a fullscreen page."),
     )
 
-    class Meta:
+    class Meta(Page.Meta):
         verbose_name = _("Image page")
         verbose_name_plural = _("Image pages")
 
@@ -277,7 +276,7 @@ class VideoPage(Page):
         help_text=_("Video to be used as a fullscreen page."),
     )
 
-    class Meta:
+    class Meta(Page.Meta):
         verbose_name = _("Video page")
         verbose_name_plural = _("Video pages")
 
@@ -313,7 +312,7 @@ class WebsitePage(Page):
         help_text=_("URL of website to be used inside an IFRAME as a fullscreen page."),
     )
 
-    class Meta:
+    class Meta(Page.Meta):
         verbose_name = _("Website page")
         verbose_name_plural = _("Website pages")
 
@@ -340,7 +339,7 @@ class PDFPage(Page):
     )
     page_runtime = models.DurationField(blank=True, null=True)
 
-    class Meta:
+    class Meta(Page.Meta):
         verbose_name = _("PDF page")
         verbose_name_plural = _("PDF pages")
 
@@ -387,9 +386,11 @@ class PDFPage(Page):
             runtime=self.get_runtime(),
             url=self.pdf.url,
             pages=[p.image.url for p in pages],
-            page_runtime=int(self.page_runtime.total_seconds())
-            if self.page_runtime
-            else self.get_runtime() / pages.count(),
+            page_runtime=(
+                int(self.page_runtime.total_seconds())
+                if self.page_runtime
+                else self.get_runtime() / pages.count()
+            ),
         )
 
 
@@ -413,7 +414,7 @@ class CampusOnlineEventPage(Page):
         help_text=_("The building for which all events should be displayed."),
     )
 
-    class Meta:
+    class Meta(Page.Meta):
         verbose_name = _("CAMPUSonline event page")
         verbose_name_plural = _("CAMPUSonline event pages")
 
@@ -445,7 +446,7 @@ class LiveChannelPage(Page):
         ),
     )
 
-    class Meta:
+    class Meta(Page.Meta):
         verbose_name = _("Live channel page")
         verbose_name_plural = _("Live channel pages")
 
@@ -464,7 +465,7 @@ class TYPO3NewsPage(Page):
         "typo3.News", on_delete=models.DO_NOTHING, db_constraint=False
     )
 
-    class Meta:
+    class Meta(Page.Meta):
         verbose_name = _("TYPO3 news page")
         verbose_name_plural = _("TYPO3 news pages")
 
@@ -499,7 +500,7 @@ class TYPO3EventPage(Page):
         "typo3.Event", on_delete=models.DO_NOTHING, db_constraint=False
     )
 
-    class Meta:
+    class Meta(Page.Meta):
         verbose_name = _("TYPO3 event page")
         verbose_name_plural = _("TYPO3 event pages")
 
@@ -539,7 +540,7 @@ class RestaurantPage(Page):
     restaurants = models.ManyToManyField("restaurant.Restaurant")
     restaurant_runtime = models.DurationField(default=timedelta(seconds=30))
 
-    class Meta:
+    class Meta(Page.Meta):
         verbose_name = _("Restaurant page")
         verbose_name_plural = _("Restaurant pages")
 
@@ -564,9 +565,11 @@ class RestaurantPage(Page):
                     city=r.city,
                     phone=r.phone,
                     url=r.url,
-                    position=schemas.Point(x=r.position.x, y=r.position.y)
-                    if r.position
-                    else None,
+                    position=(
+                        schemas.Point(x=r.position.x, y=r.position.y)
+                        if r.position
+                        else None
+                    ),
                     meals=[
                         schemas.Meal(
                             description=m.description, price=m.price, diet=m.diet.name

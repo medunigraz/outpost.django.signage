@@ -23,7 +23,7 @@ class Point(BaseModel):
 
 
 class WeatherPageSchema(BaseModel):
-    page: Literal["HTML"] = Field(..., description=_("Type of page to display"))
+    page: Literal["Weather"] = Field(..., description=_("Type of page to display"))
     id: int = Field(..., description=_("Primary key"))
     name: str = Field(..., description=_("Name of the page, only used for debugging"))
     runtime: timedelta = Field(

@@ -122,7 +122,7 @@ class DisplayConsumer(JsonWebsocketConsumer):
 
     def receive_json(self, content):
         self.display.config = content.get("config")
-        if (screen := content.get("screen")):
+        if screen := content.get("screen"):
             try:
                 self.display.screenshot = Image.open(BytesIO(b64decode(screen)))
             except Exception:
