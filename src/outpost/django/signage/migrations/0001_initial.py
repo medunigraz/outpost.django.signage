@@ -21,8 +21,8 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ("campusonline", "0067_country"),
-        ("typo3", "0005_news_filter"),
+        ("campusonline", "0001_initial"),
+        ("typo3", "0001_initial"),
         ("restaurant", "0003_auto_20220909_1544"),
         ("contenttypes", "0002_remove_content_type_name"),
         ("video", "0043_auto_20220913_1004"),
