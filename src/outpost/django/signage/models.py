@@ -687,9 +687,7 @@ class Schedule(models.Model):
         scheduleitems = self.scheduleitem_set.filter(
             range__contains=dt, stop__gt=dt.time()
         ).order_by("start", "stop")
-        today = timezone.get_current_timezone().localize(
-            datetime.combine(now.date(), time())
-        )
+        today = datetime.combine(now.date(), time()).astimezone(tz)
         for s in scheduleitems:
             if bool(s.recurrences.between(today, today, dtstart=today, inc=True)):
                 if s.start <= dt.time():
@@ -701,14 +699,14 @@ class Schedule(models.Model):
         scheduleitems = self.scheduleitem_set.filter(
             range__endswith__gt=after
         ).order_by("-start")
-        today = tz.localize(datetime.combine(after.date(), time()))
+        today = datetime.combine(after.date(), time()).astimezone(tz)
         candidates = list(
             filter(
                 lambda c: c.end >= after,
                 [
                     TriggerCandidate(
-                        tz.localize(datetime.combine(r.date(), s.start)),
-                        tz.localize(datetime.combine(r.date(), s.stop)),
+                        datetime.combine(r.date(), s.start).astimezone(tz),
+                        datetime.combine(r.date(), s.stop).astimezone(tz),
                     )
                     for s, r in (
                         (
@@ -766,8 +764,8 @@ class Power(models.Model):
         logger.info(f"Getting active power state for {self} at {now}")
         dt = now.astimezone(timezone.localtime().tzinfo)
         poweritems = self.poweritem_set.filter(on__lte=dt.time(), off__gt=dt.time())
-        today = timezone.get_current_timezone().localize(
-            datetime.combine(dt.date(), time())
+        today = datetime.combine(dt.date(), time()).astimezone(
+            timezone.get_current_timezone()
         )
         for p in poweritems:
             if bool(p.recurrences.between(today, today, dtstart=today, inc=True)):
@@ -778,11 +776,11 @@ class Power(models.Model):
         tz = timezone.get_current_timezone()
         dt = after.astimezone(tz)
         poweritems = self.poweritem_set.all()
-        today = tz.localize(datetime.combine(dt.date(), time()))
+        today = datetime.combine(dt.date(), time()).astimezone(tz)
         candidates = [
             TriggerCandidate(
-                tz.localize(datetime.combine(r.date(), s.on)),
-                tz.localize(datetime.combine(r.date(), s.off)),
+                datetime.combine(r.date(), s.on).astimezone(tz),
+                datetime.combine(r.date(), s.off).astimezone(tz),
             )
             for s, r in (
                 (
