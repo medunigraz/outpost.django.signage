@@ -95,7 +95,9 @@ class SignageServer(StatelessServer):
         return p
 
     async def schedule(self, schedule, after):
-        p = await database_sync_to_async(self.sync_schedule)(schedule, after)
+        p = await database_sync_to_async(self.sync_schedule, thread_sensitive=False)(
+            schedule, after
+        )
         await self.channel_layer.group_send(
             schedule.channel, {"type": "playlist.update", "playlist": p.pk}
         )
@@ -115,22 +117,32 @@ class SignageServer(StatelessServer):
         return p
 
     async def power(self, power, after):
-        p = await database_sync_to_async(self.sync_power)(power, after)
+        p = await database_sync_to_async(self.sync_power, thread_sensitive=False)(
+            power, after
+        )
         await self.channel_layer.group_send(
             power.channel, {"type": "power.on" if p else "power.off"}
         )
 
     async def handle(self):
         now = timezone.localtime()
-        schedules = await database_sync_to_async(get_model_objects)(models.Schedule)
+        schedules = await database_sync_to_async(
+            get_model_objects, thread_sensitive=False
+        )(models.Schedule)
         for s in schedules:
-            pl = await database_sync_to_async(s.get_active_playlist)(now)
+            pl = await database_sync_to_async(
+                s.get_active_playlist, thread_sensitive=False
+            )(now)
             await self.channel_layer.group_send(
                 s.channel, {"type": "playlist.update", "playlist": pl.pk}
             )
-        powers = await database_sync_to_async(get_model_objects)(models.Power)
+        powers = await database_sync_to_async(
+            get_model_objects, thread_sensitive=False
+        )(models.Power)
         for p in powers:
-            state = await database_sync_to_async(p.get_active_state)(now)
+            state = await database_sync_to_async(
+                p.get_active_state, thread_sensitive=False
+            )(now)
             await self.channel_layer.group_send(
                 p.channel,
                 {"type": "power.on" if state else "power.off"},
