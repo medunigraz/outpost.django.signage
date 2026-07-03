@@ -1,6 +1,8 @@
 import inspect
 import logging
 
+from datetime import timezone as tz
+
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from asgiref.server import StatelessServer
 from channels.db import database_sync_to_async
@@ -31,7 +33,7 @@ class SignageServer(StatelessServer):
         self.channel = channel
         self.scheduler = AsyncIOScheduler(
             jobstores=settings.SIGNAGE_SCHEDULER_JOB_STORES,
-            timezone=timezone.utc,
+            timezone=tz.utc,
             job_defaults={
                 "misfire_grace_time": 10,
             },
@@ -51,7 +53,7 @@ class SignageServer(StatelessServer):
             self.schedules[s.pk] = self.scheduler.add_job(
                 self.schedule,
                 "date",
-                run_date=trigger.astimezone(timezone.utc),
+                run_date=trigger.astimezone(tz.utc),
                 kwargs={"schedule": s, "after": trigger},
             )
         for p in models.Power.objects.all():
@@ -65,7 +67,7 @@ class SignageServer(StatelessServer):
             self.powers[p.pk] = self.scheduler.add_job(
                 self.power,
                 "date",
-                run_date=trigger.astimezone(timezone.utc),
+                run_date=trigger.astimezone(tz.utc),
                 kwargs={"power": p, "after": trigger},
             )
 
@@ -81,7 +83,7 @@ class SignageServer(StatelessServer):
             self.schedules[schedule.pk] = self.scheduler.add_job(
                 self.schedule,
                 "date",
-                run_date=trigger.astimezone(timezone.utc),
+                run_date=trigger.astimezone(tz.utc),
                 kwargs={"schedule": schedule, "after": trigger},
             )
         p = schedule.get_active_playlist(after)
@@ -103,7 +105,7 @@ class SignageServer(StatelessServer):
         self.powers[power.pk] = self.scheduler.add_job(
             self.power,
             "date",
-            run_date=trigger.astimezone(timezone.utc),
+            run_date=trigger.astimezone(tz.utc),
             kwargs={"power": power, "after": trigger},
         )
         return p

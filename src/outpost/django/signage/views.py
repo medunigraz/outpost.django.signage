@@ -1,5 +1,6 @@
 import logging
 from dataclasses import dataclass
+from datetime import datetime
 
 from braces.views import (
     JSONResponseMixin,
@@ -44,8 +45,8 @@ class SchemaView(View):
 
 @dataclass
 class Event:
-    start: timezone.datetime
-    stop: timezone.datetime
+    start: datetime
+    stop: datetime
     name: str
 
 
@@ -63,8 +64,8 @@ class ScheduleFeed(ICalFeed):
                 s.range.lower, s.range.upper, inc=True, dtstart=timezone.now()
             ):
                 yield Event(
-                    timezone.datetime.combine(r.date(), s.start, tzinfo=r.tzinfo),
-                    timezone.datetime.combine(r.date(), s.stop, tzinfo=r.tzinfo),
+                    datetime.combine(r.date(), s.start, tzinfo=r.tzinfo),
+                    datetime.combine(r.date(), s.stop, tzinfo=r.tzinfo),
                     s.playlist.name,
                 )
 

@@ -688,7 +688,7 @@ class Schedule(models.Model):
             range__contains=dt, stop__gt=dt.time()
         ).order_by("start", "stop")
         today = timezone.get_current_timezone().localize(
-            timezone.datetime.combine(now.date(), time())
+            datetime.combine(now.date(), time())
         )
         for s in scheduleitems:
             if bool(s.recurrences.between(today, today, dtstart=today, inc=True)):
@@ -701,14 +701,14 @@ class Schedule(models.Model):
         scheduleitems = self.scheduleitem_set.filter(
             range__endswith__gt=after
         ).order_by("-start")
-        today = tz.localize(timezone.datetime.combine(after.date(), time()))
+        today = tz.localize(datetime.combine(after.date(), time()))
         candidates = list(
             filter(
                 lambda c: c.end >= after,
                 [
                     TriggerCandidate(
-                        tz.localize(timezone.datetime.combine(r.date(), s.start)),
-                        tz.localize(timezone.datetime.combine(r.date(), s.stop)),
+                        tz.localize(datetime.combine(r.date(), s.start)),
+                        tz.localize(datetime.combine(r.date(), s.stop)),
                     )
                     for s, r in (
                         (
@@ -767,7 +767,7 @@ class Power(models.Model):
         dt = now.astimezone(timezone.localtime().tzinfo)
         poweritems = self.poweritem_set.filter(on__lte=dt.time(), off__gt=dt.time())
         today = timezone.get_current_timezone().localize(
-            timezone.datetime.combine(dt.date(), time())
+            datetime.combine(dt.date(), time())
         )
         for p in poweritems:
             if bool(p.recurrences.between(today, today, dtstart=today, inc=True)):
@@ -778,11 +778,11 @@ class Power(models.Model):
         tz = timezone.get_current_timezone()
         dt = after.astimezone(tz)
         poweritems = self.poweritem_set.all()
-        today = tz.localize(timezone.datetime.combine(dt.date(), time()))
+        today = tz.localize(datetime.combine(dt.date(), time()))
         candidates = [
             TriggerCandidate(
-                tz.localize(timezone.datetime.combine(r.date(), s.on)),
-                tz.localize(timezone.datetime.combine(r.date(), s.off)),
+                tz.localize(datetime.combine(r.date(), s.on)),
+                tz.localize(datetime.combine(r.date(), s.off)),
             )
             for s, r in (
                 (
