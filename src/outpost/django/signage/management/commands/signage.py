@@ -1,3 +1,4 @@
+import asyncio
 import inspect
 import logging
 
@@ -31,12 +32,15 @@ class SignageServer(StatelessServer):
         if self.channel_layer is None:
             raise ValueError("Channel layer is not valid")
         self.channel = channel
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
         self.scheduler = AsyncIOScheduler(
             jobstores=settings.SIGNAGE_SCHEDULER_JOB_STORES,
             timezone=tz.utc,
             job_defaults={
                 "misfire_grace_time": 10,
             },
+            event_loop=loop,
         )
         self.scheduler.start()
         self.schedules = dict()
