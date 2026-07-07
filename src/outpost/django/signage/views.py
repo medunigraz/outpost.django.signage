@@ -21,7 +21,7 @@ from django.views.generic import DetailView
 from django_ical.views import ICalFeed
 from outpost.django.video.models import LiveEvent
 from PIL import Image
-from pydantic.main import ModelMetaclass
+from pydantic import BaseModel
 
 from . import (
     models,
@@ -36,7 +36,7 @@ class SchemaView(View):
         cls = getattr(schemas, name, None)
         if not cls:
             return HttpResponseNotFound(_("No such schema found"))
-        if not isinstance(cls, ModelMetaclass):
+        if not isinstance(cls, BaseModel):
             return HttpResponseBadRequest(_("Requested class is not a schema"))
         return HttpResponse(
             cls.schema_json(indent=2), content_type="application/schema+json"
