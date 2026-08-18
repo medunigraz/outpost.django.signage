@@ -59,6 +59,8 @@ class DisplayAdmin(
     )
     list_filter = ("schedule", "power", "resolution", "enabled", "online")
     readonly_fields = ("pk", "config", "screenshot")
+    search_fields = ("name", "hostname")
+    ordering = ("name",)
 
     def get_form(self, request, obj=None, **kwargs):
         form = super().get_form(request, obj, **kwargs)
@@ -149,6 +151,7 @@ class PageParentAdmin(
     )
     list_filter = (PolymorphicChildModelFilter,)
     list_display = ("name", "page", "created", "modified")
+    search_fields = ("name", "page")
 
 
 @admin.register(models.WeatherPage)
@@ -285,6 +288,8 @@ class PlaylistAdmin(
     related_object_permissions = {
         models.PlaylistItem: ("view", "change", "delete"),
     }
+    search_fields = ("name",)
+    ordering = ("name",)
 
 
 class ScheduleItemInline(GuardedModelAdminPermissionMixin, OrderedTabularInline):
@@ -314,6 +319,8 @@ class ScheduleAdmin(
 ):
     inlines = (ScheduleItemInline,)
     list_display = ("name", "default", "ical")
+    search_fields = ("name",)
+    ordering = ("name",)
     actions = ("publish",)
     object_permissions = ("view", "change", "delete")
     related_object_permissions = {
