@@ -356,14 +356,14 @@ class PDFPage(Page):
                         (settings.SIGNAGE_PDF_RENDER_MIN_HEIGHT / page.rect.height),
                         (settings.SIGNAGE_PDF_RENDER_MIN_WIDTH / page.rect.width),
                     )
-                    pix = page.getPixmap(
-                        matrix=fitz.Matrix(zoom, zoom) if zoom > 1 else None
+                    pix = page.get_pixmap(
+                        matrix=fitz.Matrix(zoom, zoom) if zoom > 1 else fritz.Identity
                     )
                     c = ContentFile(
                         b"",
                         name=f"pdf-{self.pk}-page-{page.number}.{settings.SIGNAGE_PDF_RENDER_FORMAT}",
                     )
-                    pix.pillowWrite(
+                    pix.pil_save(
                         c,
                         format=settings.SIGNAGE_PDF_RENDER_FORMAT,
                         optimize=True,
