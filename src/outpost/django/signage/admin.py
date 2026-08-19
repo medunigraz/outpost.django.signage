@@ -151,7 +151,7 @@ class PageParentAdmin(
     )
     list_filter = (PolymorphicChildModelFilter,)
     list_display = ("name", "page", "created", "modified")
-    search_fields = ("name", "page")
+    search_fields = ("name",)
 
 
 @admin.register(models.WeatherPage)
