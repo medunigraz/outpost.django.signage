@@ -652,6 +652,14 @@ class ScheduleItem(models.Model):
         return f"{self.playlist} ({self.start} - {self.stop})"
 
     def clean(self):
+        if not self.start:
+            raise ValidationError(
+                _("Start time must be set"),
+            )
+        if not self.stop:
+            raise ValidationError(
+                _("Stop time must be set"),
+            )
         if self.start > self.stop:
             raise ValidationError(
                 _("Start time must be less then end"),
