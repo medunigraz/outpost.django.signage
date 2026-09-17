@@ -51,6 +51,13 @@ class ScheduleItemAdminInlineFormSet(forms.BaseInlineFormSet):
                 ]
             )
 
+        for form in self.forms:
+            if not form.instance.range:
+                form.add_error(
+                    form.instance.range,
+                    _("Range cannot be empty"),
+                )
+
         for a, b in combinations(filter(lambda f: f.has_changed(), self.forms), 2):
             if not overlap(
                 a.instance.range.lower,
