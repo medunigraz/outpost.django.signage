@@ -808,11 +808,13 @@ class Power(models.Model):
             )
         ]
         if not candidates:
-            logger.debug("There are no future power items, ")
+            logger.debug(f"There are no future power items for {self} after {after}")
             return None
-        candidate = min(
-            filter(lambda c: c.end >= after, candidates), key=lambda c: c.start
-        )
+        futures = filter(lambda c: c.end >= after, candidates)
+        if not futures:
+            logger.debug(f"There are no future power items for {self} after {after}")
+            return None
+        candidate = min(futures, key=lambda c: c.start)
         if candidate.start <= after and candidate.end >= after:
             return candidate.end
         else:
