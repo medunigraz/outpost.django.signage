@@ -45,9 +45,8 @@ class SignageServer(StatelessServer):
         self.scheduler.start()
         self.schedules = dict()
         self.powers = dict()
-        now = timezone.now()
         for s in models.Schedule.objects.all():
-            trigger = s.get_next_trigger(now)
+            trigger = s.get_next_trigger(timezone.now())
             if not trigger:
                 logger.info(f"No more scheduled items for {s}")
                 if s.pk in self.schedules:
@@ -61,7 +60,7 @@ class SignageServer(StatelessServer):
                 kwargs={"schedule": s, "after": trigger},
             )
         for p in models.Power.objects.all():
-            trigger = p.get_next_trigger(now)
+            trigger = p.get_next_trigger(timezone.now())
             if not trigger:
                 logger.info(f"No more power items for {p}")
                 if p.pk in self.powers:
