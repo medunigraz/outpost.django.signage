@@ -164,7 +164,7 @@ class SignageServer(StatelessServer):
         pk = message.get("schedule")
         logger.info(f"Updating schedule {pk} from channels.")
         try:
-            schedule = models.Schedule.objects.get(pk=pk)
+            schedule = await models.Schedule.objects.aget(pk=pk)
         except models.Schedule.DoesNotExist:
             logger.error("Unknown schedule {pk}")
             return
@@ -177,7 +177,7 @@ class SignageServer(StatelessServer):
         pk = message.get("power")
         logger.info(f"Updating power {pk} from channels.")
         try:
-            power = models.Power.objects.get(pk=pk)
+            power = await models.Power.objects.aget(pk=pk)
         except models.Power.DoesNotExist:
             logger.error("Unknown power {pk}")
             return
