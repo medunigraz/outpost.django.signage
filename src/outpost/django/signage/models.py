@@ -811,7 +811,7 @@ class Power(models.Model):
             logger.error(f"There are no future power items for {self} after {after}")
             return None
         futures = filter(lambda c: c.end >= after, candidates)
-        candidate = min(futures, None, key=lambda c: c.start)
+        candidate = min(futures, default=None, key=lambda c: c.start)
         if not candidate:
             logger.error(f"There are no future power items for {self} after {after}")
             return None
